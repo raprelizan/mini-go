@@ -11,7 +11,7 @@ MiniGo is a production-ready, multi-tenant landing page platform designed for Ca
 1. Create a database and import the migration SQL.
 2. Update environment variables for DB credentials and base domain.
 3. Point your web server document root to `public/`.
-4. Create the first Super Admin user manually in the `users` table.
+4. Visit `/setup` to create the first Super Admin user (one-time setup).
 
 ## Environment Variables
 ```

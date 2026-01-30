@@ -4,16 +4,26 @@ namespace App\Controllers;
 
 use App\Core\Database;
 use App\Core\Auth;
+use App\Models\User;
 
 class AuthController
 {
     public function showLogin(): void
     {
+        if (!User::superAdminExists()) {
+            header('Location: /setup');
+            return;
+        }
         view('auth/login');
     }
 
     public function login(): void
     {
+        if (!User::superAdminExists()) {
+            $_SESSION['flash_error'] = 'Complete the initial setup first.';
+            header('Location: /setup');
+            return;
+        }
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 

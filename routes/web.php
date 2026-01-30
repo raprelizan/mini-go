@@ -4,6 +4,7 @@ use App\Controllers\LandingPageController;
 use App\Controllers\MerchantController;
 use App\Controllers\SuperAdminController;
 use App\Controllers\AuthController;
+use App\Controllers\SetupController;
 
 $router->get('/', function () {
     view('marketing/home');
@@ -12,6 +13,8 @@ $router->get('/', function () {
 $router->get('/login', [new AuthController(), 'showLogin']);
 $router->post('/login', [new AuthController(), 'login']);
 $router->post('/logout', [new AuthController(), 'logout']);
+$router->get('/setup', [new SetupController(), 'show']);
+$router->post('/setup', [new SetupController(), 'store']);
 
 $router->get('/admin', [new SuperAdminController(), 'dashboard']);
 $router->post('/admin/merchants', [new SuperAdminController(), 'createMerchant']);
