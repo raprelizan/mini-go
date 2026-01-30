@@ -1,16 +1,22 @@
 :root {
-    --accent: #6c5ce7;
-    --accent-strong: #5b4bd6;
-    --dark: #0f1117;
-    --card: #1a1f2e;
-    --sidebar: #111827;
-    --text-muted: #a0aec0;
+    --accent: #ff7a18;
+    --accent-strong: #f97316;
+    --secondary: #22d3ee;
+    --dark: #0b1120;
+    --card: #111827;
+    --sidebar: #0f172a;
+    --text-muted: #9ca3af;
+    --border: rgba(255, 255, 255, 0.08);
 }
 
 body {
-    font-family: "Inter", "Segoe UI", sans-serif;
+    font-family: "Tajawal", "Inter", "Segoe UI", sans-serif;
     background: var(--dark);
     color: #f8fafc;
+}
+
+a {
+    text-decoration: none;
 }
 
 .app-shell {
@@ -22,22 +28,25 @@ body {
     width: 260px;
     background: var(--sidebar);
     padding: 32px 24px;
+    border-left: 1px solid var(--border);
 }
 
 .sidebar .brand {
     font-weight: 700;
     font-size: 1.2rem;
     margin-bottom: 32px;
+    color: #fff;
 }
 
 .sidebar .nav-link {
     color: #d1d5db;
     margin-bottom: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 10px 14px;
     transition: all 0.2s ease;
 }
 
+.sidebar .nav-link.active,
 .sidebar .nav-link:hover,
 .sidebar .nav-link:focus {
     background: rgba(255, 255, 255, 0.08);
@@ -54,6 +63,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
+    gap: 16px;
 }
 
 .app-title {
@@ -67,31 +77,63 @@ body {
 
 .app-card {
     background: var(--card);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border);
     border-radius: 16px;
+}
+
+.card-header {
+    border-bottom: 1px solid var(--border);
 }
 
 .hero-section,
 .feature-section,
 .landing-hero {
-    padding: 60px 0;
+    padding: 70px 0;
+}
+
+.marketing-header {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+}
+
+.marketing-header .brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.marketing-header .nav-link {
+    color: #cbd5f5;
+}
+
+.marketing-footer {
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
 }
 
 .hero-card,
 .feature-card,
 .template-card,
-.order-card {
-    background: rgba(255, 255, 255, 0.06);
+.order-card,
+.step-card,
+.cta-card {
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border);
+}
+
+.section-title {
+    margin-bottom: 32px;
 }
 
 .feature-card i,
 .hero-card i,
 .template-card i {
     font-size: 1.5rem;
-    color: var(--accent);
+    color: var(--secondary);
 }
 
 .btn-accent {
@@ -106,14 +148,18 @@ body {
     color: #fff;
 }
 
+.link-accent {
+    color: var(--secondary);
+}
+
 .table-dark {
     --bs-table-bg: transparent;
-    --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.04);
 }
 
 .price-tag {
     display: inline-block;
-    background: rgba(108, 92, 231, 0.2);
+    background: rgba(255, 122, 24, 0.2);
     color: #fff;
     padding: 10px 16px;
     border-radius: 999px;
@@ -128,11 +174,11 @@ body {
 
 .gallery img {
     border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
 }
 
 .gallery-placeholder {
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border: 1px dashed var(--border);
     border-radius: 14px;
     padding: 40px;
     text-align: center;
@@ -156,6 +202,45 @@ body {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     color: var(--text-muted);
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 122, 24, 0.15), rgba(34, 211, 238, 0.1));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-card span {
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: block;
+    margin-top: 8px;
+}
+
+.feature-section.alt {
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.step-card span {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.cta-section {
+    padding: 60px 0;
+}
+
+.cta-card {
+    text-align: center;
 }
 
 @media (max-width: 991px) {

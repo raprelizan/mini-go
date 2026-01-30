@@ -29,7 +29,7 @@ class SetupController
         $password = $_POST['password'] ?? '';
 
         if ($name === '' || $email === '' || $password === '') {
-            $_SESSION['flash_error'] = 'Please fill in all fields.';
+            $_SESSION['flash_error'] = 'يرجى ملء جميع الحقول.';
             header('Location: /setup');
             return;
         }
@@ -42,7 +42,7 @@ class SetupController
             'role' => 'super_admin',
         ]);
 
-        $_SESSION['flash_success'] = 'Super admin created. You can now log in.';
+        $_SESSION['flash_success'] = 'تم إنشاء حساب الأدمن. يمكنك تسجيل الدخول الآن.';
         header('Location: /login');
     }
 }

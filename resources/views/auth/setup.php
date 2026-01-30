@@ -1,7 +1,7 @@
 <?php
 $sidebar = null;
-$title = 'Initial Setup';
-$subtitle = 'Create the first Super Admin account.';
+$title = 'إعداد المدير الأول';
+$subtitle = 'هذه الخطوة تُنفّذ مرة واحدة فقط.';
 ob_start();
 ?>
 <div class="container">
@@ -12,22 +12,22 @@ ob_start();
                     <form method="post" action="/setup" class="vstack gap-3">
                         <?= csrf_field() ?>
                         <div>
-                            <label class="form-label">Full name</label>
+                            <label class="form-label">الاسم الكامل</label>
                             <input type="text" name="name" class="form-control" required>
                         </div>
                         <div>
-                            <label class="form-label">Email</label>
+                            <label class="form-label">البريد الإلكتروني</label>
                             <input type="email" name="email" class="form-control" required>
                         </div>
                         <div>
-                            <label class="form-label">Password</label>
+                            <label class="form-label">كلمة المرور</label>
                             <input type="password" name="password" class="form-control" required>
                         </div>
-                        <button class="btn btn-accent" type="submit">Create Super Admin</button>
+                        <button class="btn btn-accent" type="submit">إنشاء حساب الأدمن</button>
                     </form>
                 </div>
             </div>
-            <p class="text-center text-secondary mt-3">This setup can be completed only once.</p>
+            <p class="text-center text-secondary mt-3">بعد إنشاء الحساب سيتم إغلاق صفحة الإعداد نهائياً.</p>
         </div>
     </div>
 </div>

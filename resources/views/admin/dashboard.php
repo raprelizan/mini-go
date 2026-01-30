@@ -1,211 +1,59 @@
 <?php
-$sidebar = '<div class="brand">MiniGo Admin</div>'
+$sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<nav class="nav flex-column">'
-    . '<a class="nav-link" href="/admin"><i class="bi bi-speedometer2"></i> Overview</a>'
-    . '<a class="nav-link" href="#merchants"><i class="bi bi-people"></i> Merchants</a>'
-    . '<a class="nav-link" href="#templates"><i class="bi bi-grid"></i> Templates</a>'
-    . '<a class="nav-link" href="#pages"><i class="bi bi-window"></i> Pages</a>'
-    . '<a class="nav-link" href="#orders"><i class="bi bi-inbox"></i> Orders</a>'
+    . '<a class="nav-link" href="/admin"><i class="bi bi-speedometer2"></i> نظرة عامة</a>'
+    . '<a class="nav-link" href="/admin/merchants"><i class="bi bi-people"></i> التجار</a>'
+    . '<a class="nav-link" href="/admin/pages"><i class="bi bi-window"></i> الصفحات</a>'
+    . '<a class="nav-link" href="/admin/templates"><i class="bi bi-grid"></i> القوالب</a>'
+    . '<a class="nav-link" href="/admin/orders"><i class="bi bi-inbox"></i> الطلبات</a>'
+    . '<a class="nav-link" href="/admin/users"><i class="bi bi-shield-lock"></i> المشرفون</a>'
+    . '<a class="nav-link" href="/admin/profile"><i class="bi bi-person-gear"></i> حسابي</a>'
     . '<form method="post" action="/logout" class="mt-4">'
     . csrf_field()
-    . '<button class="btn btn-outline-light w-100" type="submit">Sign out</button>'
+    . '<button class="btn btn-outline-light w-100" type="submit">تسجيل الخروج</button>'
     . '</form>'
     . '</nav>';
-$title = 'Super Admin Command Center';
-$subtitle = 'Control merchants, templates, pages, and orders.';
+$title = 'مركز القيادة';
+$subtitle = 'إدارة سريعة للتجار والصفحات والطلبات.';
 ob_start();
 ?>
-<section class="dashboard-grid">
-    <div class="card app-card" id="merchants">
-        <div class="card-header">
-            <h3>Merchants</h3>
-        </div>
-        <div class="card-body">
-            <form method="post" action="/admin/merchants" class="row g-3 mb-4">
-                <?= csrf_field() ?>
-                <div class="col-md-3">
-                    <input type="text" name="name" class="form-control" placeholder="Merchant name" required>
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="subdomain" class="form-control" placeholder="Subdomain" required>
-                </div>
-                <div class="col-md-3">
-                    <input type="email" name="email" class="form-control" placeholder="Owner email" required>
-                </div>
-                <div class="col-md-2">
-                    <input type="password" name="password" class="form-control" placeholder="Temp password" required>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-accent w-100" type="submit">Create</button>
-                </div>
-            </form>
-            <div class="table-responsive">
-                <table class="table table-dark table-striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Subdomain</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($merchants as $merchant) : ?>
-                            <tr>
-                                <td><?= htmlspecialchars($merchant['name']) ?></td>
-                                <td><?= htmlspecialchars($merchant['subdomain']) ?></td>
-                                <td><?= $merchant['is_active'] ? 'Active' : 'Disabled' ?></td>
-                                <td>
-                                    <form method="post" action="/admin/merchants/toggle">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="merchant_id" value="<?= (int) $merchant['id'] ?>">
-                                        <button class="btn btn-sm btn-outline-light" type="submit">Toggle</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h6>عدد التجار</h6>
+            <span><?= (int) $stats['merchants'] ?></span>
         </div>
     </div>
-
-    <div class="card app-card" id="templates">
-        <div class="card-header">
-            <h3>Templates</h3>
-        </div>
-        <div class="card-body">
-            <form method="post" action="/admin/templates" class="row g-3 mb-4">
-                <?= csrf_field() ?>
-                <div class="col-md-4">
-                    <input type="text" name="name" class="form-control" placeholder="Template name" required>
-                </div>
-                <div class="col-md-6">
-                    <input type="text" name="description" class="form-control" placeholder="Description">
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-accent w-100" type="submit">Create</button>
-                </div>
-            </form>
-            <div class="row g-3">
-                <?php foreach ($templates as $template) : ?>
-                    <div class="col-md-4">
-                        <div class="template-card">
-                            <h5><?= htmlspecialchars($template['name']) ?></h5>
-                            <p><?= htmlspecialchars($template['description']) ?></p>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h6>الصفحات النشطة</h6>
+            <span><?= (int) $stats['pages'] ?></span>
         </div>
     </div>
-
-    <div class="card app-card" id="pages">
-        <div class="card-header">
-            <h3>Landing Pages</h3>
-        </div>
-        <div class="card-body">
-            <form method="post" action="/admin/pages" class="row g-3 mb-4">
-                <?= csrf_field() ?>
-                <div class="col-md-2">
-                    <select name="merchant_id" class="form-select" required>
-                        <option value="">Merchant</option>
-                        <?php foreach ($merchants as $merchant) : ?>
-                            <option value="<?= (int) $merchant['id'] ?>"><?= htmlspecialchars($merchant['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="template_id" class="form-select" required>
-                        <option value="">Template</option>
-                        <?php foreach ($templates as $template) : ?>
-                            <option value="<?= (int) $template['id'] ?>"><?= htmlspecialchars($template['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="title" class="form-control" placeholder="Title" required>
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="slug" class="form-control" placeholder="Slug" required>
-                </div>
-                <div class="col-md-2">
-                    <input type="text" name="price" class="form-control" placeholder="Price">
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-accent w-100" type="submit">Create</button>
-                </div>
-                <div class="col-12">
-                    <input type="text" name="description" class="form-control" placeholder="Short description">
-                </div>
-            </form>
-            <div class="table-responsive">
-                <table class="table table-dark table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Merchant</th>
-                            <th>Slug</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($pages as $page) : ?>
-                            <tr>
-                                <td><?= htmlspecialchars($page['title']) ?></td>
-                                <td><?= htmlspecialchars($page['merchant_name']) ?></td>
-                                <td><?= htmlspecialchars($page['slug']) ?></td>
-                                <td><?= $page['is_active'] ? 'Active' : 'Disabled' ?></td>
-                                <td>
-                                    <form method="post" action="/admin/pages/toggle">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="page_id" value="<?= (int) $page['id'] ?>">
-                                        <button class="btn btn-sm btn-outline-light" type="submit">Toggle</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h6>الطلبات</h6>
+            <span><?= (int) $stats['orders'] ?></span>
         </div>
     </div>
-
-    <div class="card app-card" id="orders">
-        <div class="card-header">
-            <h3>Orders</h3>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-dark table-striped">
-                    <thead>
-                        <tr>
-                            <th>Reference</th>
-                            <th>Merchant</th>
-                            <th>Page</th>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($orders as $order) : ?>
-                            <tr>
-                                <td>#<?= (int) $order['id'] ?></td>
-                                <td><?= htmlspecialchars($order['merchant_name']) ?></td>
-                                <td><?= htmlspecialchars($order['page_title']) ?></td>
-                                <td><?= htmlspecialchars($order['full_name']) ?></td>
-                                <td><?= htmlspecialchars($order['phone']) ?></td>
-                                <td><?= htmlspecialchars($order['status']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h6>القوالب</h6>
+            <span><?= (int) $stats['templates'] ?></span>
         </div>
     </div>
-</section>
+</div>
+<div class="card app-card mt-4">
+    <div class="card-body">
+        <h4>ابدأ بسرعة</h4>
+        <p class="text-secondary">قم بإضافة تاجر جديد ثم أنشئ صفحة منتج وربطها بنطاق فرعي. يمكنك مراجعة الطلبات وإضافة مشرفين آخرين من القائمة الجانبية.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-accent" href="/admin/merchants">إضافة تاجر</a>
+            <a class="btn btn-outline-light" href="/admin/pages">إنشاء صفحة</a>
+            <a class="btn btn-outline-light" href="/admin/orders">عرض الطلبات</a>
+        </div>
+    </div>
+</div>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../layouts/app.php';

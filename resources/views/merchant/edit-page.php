@@ -1,15 +1,15 @@
 <?php
-$sidebar = '<div class="brand">Merchant Panel</div>'
+$sidebar = '<div class="brand">لوحة التاجر</div>'
     . '<nav class="nav flex-column">'
-    . '<a class="nav-link" href="/merchant"><i class="bi bi-speedometer2"></i> Dashboard</a>'
-    . '<a class="nav-link" href="/merchant/settings"><i class="bi bi-gear"></i> Settings</a>'
+    . '<a class="nav-link" href="/merchant">لوحة التحكم</a>'
+    . '<a class="nav-link" href="/merchant/settings">الإعدادات</a>'
     . '<form method="post" action="/logout" class="mt-4">'
     . csrf_field()
-    . '<button class="btn btn-outline-light w-100" type="submit">Sign out</button>'
+    . '<button class="btn btn-outline-light w-100" type="submit">تسجيل الخروج</button>'
     . '</form>'
     . '</nav>';
-$title = 'Edit Landing Page';
-$subtitle = 'Update content that is editable for merchants.';
+$title = 'تعديل صفحة الهبوط';
+$subtitle = 'قم بتحديث المحتوى المسموح به.';
 ob_start();
 ?>
 <div class="card app-card">
@@ -19,7 +19,7 @@ ob_start();
             <input type="hidden" name="page_id" value="<?= (int) $page['id'] ?>">
             <?php foreach ($fields as $field) : ?>
                 <?php if ((int) $field['is_editable_by_merchant'] !== 1) : ?>
-                    <div class="locked-field">Locked: <?= htmlspecialchars($field['label']) ?></div>
+                    <div class="locked-field">الحقل مقفل: <?= htmlspecialchars($field['label']) ?></div>
                     <?php continue; ?>
                 <?php endif; ?>
                 <div>
@@ -33,9 +33,9 @@ ob_start();
             <?php endforeach; ?>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" name="is_active" id="is_active" <?= $page['is_active'] ? 'checked' : '' ?>>
-                <label class="form-check-label" for="is_active">Page is active</label>
+                <label class="form-check-label" for="is_active">الصفحة نشطة</label>
             </div>
-            <button class="btn btn-accent" type="submit">Save changes</button>
+            <button class="btn btn-accent" type="submit">حفظ التغييرات</button>
         </form>
     </div>
 </div>

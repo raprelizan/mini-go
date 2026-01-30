@@ -1,15 +1,15 @@
 <?php
-$sidebar = '<div class="brand">Merchant Panel</div>'
+$sidebar = '<div class="brand">لوحة التاجر</div>'
     . '<nav class="nav flex-column">'
-    . '<a class="nav-link" href="/merchant"><i class="bi bi-speedometer2"></i> Dashboard</a>'
-    . '<a class="nav-link" href="/merchant/settings"><i class="bi bi-gear"></i> Settings</a>'
+    . '<a class="nav-link" href="/merchant">لوحة التحكم</a>'
+    . '<a class="nav-link" href="/merchant/settings">الإعدادات</a>'
     . '<form method="post" action="/logout" class="mt-4">'
     . csrf_field()
-    . '<button class="btn btn-outline-light w-100" type="submit">Sign out</button>'
+    . '<button class="btn btn-outline-light w-100" type="submit">تسجيل الخروج</button>'
     . '</form>'
     . '</nav>';
-$title = 'Merchant Settings';
-$subtitle = 'Manage your WhatsApp, Telegram, and order message template.';
+$title = 'إعدادات التاجر';
+$subtitle = 'تحديث وسائل التواصل ورسالة الطلبات.';
 ob_start();
 ?>
 <div class="card app-card">
@@ -17,19 +17,19 @@ ob_start();
         <form method="post" action="/merchant/settings" class="vstack gap-3">
             <?= csrf_field() ?>
             <div>
-                <label class="form-label">WhatsApp Number</label>
+                <label class="form-label">رقم واتساب</label>
                 <input type="text" name="whatsapp_number" class="form-control" value="<?= htmlspecialchars($merchant['whatsapp_number']) ?>">
             </div>
             <div>
-                <label class="form-label">Telegram Chat ID</label>
+                <label class="form-label">معرف تيليجرام</label>
                 <input type="text" name="telegram_chat_id" class="form-control" value="<?= htmlspecialchars($merchant['telegram_chat_id']) ?>">
             </div>
             <div>
-                <label class="form-label">Order Message Template</label>
+                <label class="form-label">قالب رسالة الطلب</label>
                 <textarea name="order_message_template" class="form-control" rows="6"><?= htmlspecialchars($merchant['order_message_template']) ?></textarea>
-                <div class="form-text text-secondary">Use variables: {{page}}, {{name}}, {{phone}}, {{address}}, {{wilaya}}</div>
+                <div class="form-text text-secondary">المتغيرات: {{page}} {{name}} {{phone}} {{address}} {{wilaya}}</div>
             </div>
-            <button class="btn btn-accent" type="submit">Save settings</button>
+            <button class="btn btn-accent" type="submit">حفظ الإعدادات</button>
         </form>
     </div>
 </div>

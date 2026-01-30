@@ -1,29 +1,42 @@
 <?php
 $sidebar = null;
-$title = 'MiniGo Multi-Tenant Commerce Platform';
-$subtitle = 'Launch high-converting landing pages for every merchant without custom development.';
+$title = 'منصة MiniGo للتجارة متعددة التجار';
+$subtitle = 'حل احترافي لإطلاق صفحات هبوط لكل تاجر ضمن نطاق فرعي خاص.';
 ob_start();
 ?>
+<header class="marketing-header">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="brand">MiniGo</div>
+            <nav class="nav">
+                <a class="nav-link" href="#features">المزايا</a>
+                <a class="nav-link" href="#flow">كيف تعمل</a>
+                <a class="nav-link" href="#cta">ابدأ الآن</a>
+            </nav>
+            <a class="btn btn-accent" href="/login">تسجيل الدخول</a>
+        </div>
+    </div>
+</header>
 <section class="hero-section">
     <div class="container">
-        <div class="row align-items-center">
+        <div class="row align-items-center g-5">
             <div class="col-lg-6">
-                <span class="badge text-bg-primary mb-3">Cash On Delivery Ready</span>
-                <h2 class="display-5 fw-bold">Build. Launch. Convert. Manage everything from one platform.</h2>
-                <p class="lead">MiniGo hosts multiple merchant landing pages, each with its own subdomain, templates, and instant order notifications on WhatsApp or Telegram.</p>
-                <div class="d-flex gap-3">
-                    <a class="btn btn-accent" href="/login">Admin Login</a>
-                    <a class="btn btn-outline-light" href="#features">Explore Features</a>
+                <span class="badge text-bg-primary mb-3">مهيأة للدفع عند الاستلام</span>
+                <h2 class="display-5 fw-bold">مركز واحد لإدارة صفحات الهبوط والطلبات لكل تجارك.</h2>
+                <p class="lead">أنشئ صفحات بيع عالية التحويل، اربطها بنطاقات فرعية للتجار، واستقبل الطلبات مباشرة عبر واتساب أو تيليجرام مع لوحة تحكم قوية.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a class="btn btn-accent" href="/setup">إنشاء أول حساب أدمن</a>
+                    <a class="btn btn-outline-light" href="#features">استكشف التفاصيل</a>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="hero-card">
-                    <h3 class="h5">Platform Highlights</h3>
+                    <h3 class="h5">لوحة تحكم احترافية</h3>
                     <ul class="list-unstyled mt-4">
-                        <li><i class="bi bi-globe"></i> Multi-tenant subdomains for merchants</li>
-                        <li><i class="bi bi-layout-text-window"></i> Template-controlled landing pages</li>
-                        <li><i class="bi bi-whatsapp"></i> WhatsApp + Telegram order delivery</li>
-                        <li><i class="bi bi-speedometer2"></i> Fast, responsive, conversion-first UI</li>
+                        <li><i class="bi bi-globe"></i> نطاق فرعي لكل تاجر</li>
+                        <li><i class="bi bi-layout-text-window"></i> قوالب قابلة للتحكم</li>
+                        <li><i class="bi bi-whatsapp"></i> إرسال الطلبات تلقائياً</li>
+                        <li><i class="bi bi-graph-up"></i> صفحات محسّنة للتحويل</li>
                     </ul>
                 </div>
             </div>
@@ -32,31 +45,88 @@ ob_start();
 </section>
 <section id="features" class="feature-section">
     <div class="container">
+        <div class="section-title">
+            <h3>كل ما تحتاجه لتوسيع تجارتك</h3>
+            <p class="text-secondary">تحكم كامل في التجار، الصفحات، والطلبات من لوحة واحدة.</p>
+        </div>
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="feature-card">
                     <i class="bi bi-diagram-3"></i>
-                    <h4>Controlled Templates</h4>
-                    <p>Create multiple layouts, lock what matters, and give merchants only what they should edit.</p>
+                    <h4>قوالب احترافية</h4>
+                    <p>صمم أكثر من قالب وحدد ما يمكن للتاجر تعديله لحماية جودة العلامة.</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="feature-card">
                     <i class="bi bi-chat-square-heart"></i>
-                    <h4>Instant Order Routing</h4>
-                    <p>Orders are saved in the database and sent to merchants with clean, professional messages.</p>
+                    <h4>رسائل طلبات منظمة</h4>
+                    <p>كل طلب يُحفظ في النظام ويرسل برسالة جاهزة للتاجر عبر واتساب أو تيليجرام.</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="feature-card">
                     <i class="bi bi-shield-check"></i>
-                    <h4>Role-Based Access</h4>
-                    <p>Super Admin controls the ecosystem while merchants see only their own pages and orders.</p>
+                    <h4>صلاحيات واضحة</h4>
+                    <p>السوبر أدمن يتحكم في كل شيء، بينما يرى التاجر فقط بياناته وصفحاته.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
+<section id="flow" class="feature-section alt">
+    <div class="container">
+        <div class="section-title">
+            <h3>كيف تعمل المنصة؟</h3>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <span>1</span>
+                    <h5>أنشئ التاجر</h5>
+                    <p>حدد نطاقه الفرعي وأضف بيانات التواصل الخاصة به.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <span>2</span>
+                    <h5>أنشئ صفحة المنتج</h5>
+                    <p>اختر القالب وأضف الأسعار والوصف، وسيتم إنشاء رابط جاهز.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <span>3</span>
+                    <h5>استقبل الطلبات</h5>
+                    <p>كل طلب يصل مباشرة للتاجر ويتم حفظه لسهولة المتابعة.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="cta" class="cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <h3>جاهز لإطلاق منصتك؟</h3>
+            <p>ابدأ الآن وأنشئ أول حساب Super Admin للتحكم الكامل.</p>
+            <a class="btn btn-accent" href="/setup">ابدأ الإعداد</a>
+        </div>
+    </div>
+</section>
+<footer class="marketing-footer">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between gap-3">
+            <div>
+                <strong>MiniGo Platform</strong>
+                <p class="text-secondary">منصة متكاملة لإدارة صفحات الهبوط متعددة التجار.</p>
+            </div>
+            <div>
+                <p class="text-secondary mb-1">الدعم الفني: support@yourplatform.com</p>
+                <p class="text-secondary">© 2026 جميع الحقوق محفوظة</p>
+            </div>
+        </div>
+    </div>
+</footer>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../layouts/app.php';

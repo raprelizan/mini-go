@@ -1,7 +1,7 @@
 <?php
 $sidebar = null;
-$title = 'Login';
-$subtitle = 'Access the platform securely.';
+$title = 'تسجيل الدخول';
+$subtitle = 'ادخل إلى لوحة التحكم الخاصة بك.';
 ob_start();
 ?>
 <div class="container">
@@ -12,18 +12,18 @@ ob_start();
                     <form method="post" action="/login" class="vstack gap-3">
                         <?= csrf_field() ?>
                         <div>
-                            <label class="form-label">Email</label>
+                            <label class="form-label">البريد الإلكتروني</label>
                             <input type="email" name="email" class="form-control" required>
                         </div>
                         <div>
-                            <label class="form-label">Password</label>
+                            <label class="form-label">كلمة المرور</label>
                             <input type="password" name="password" class="form-control" required>
                         </div>
-                        <button class="btn btn-accent" type="submit">Sign in</button>
+                        <button class="btn btn-accent" type="submit">دخول</button>
                     </form>
                 </div>
             </div>
-            <p class="text-center text-secondary mt-3">Merchants are created manually by the platform owner.</p>
+            <p class="text-center text-secondary mt-3">لا يوجد تسجيل عام. يجب إنشاء الحساب من خلال مدير المنصة.</p>
         </div>
     </div>
 </div>

@@ -20,7 +20,7 @@ class AuthController
     public function login(): void
     {
         if (!User::superAdminExists()) {
-            $_SESSION['flash_error'] = 'Complete the initial setup first.';
+            $_SESSION['flash_error'] = 'يرجى إكمال إعداد المدير أولاً.';
             header('Location: /setup');
             return;
         }
@@ -32,7 +32,7 @@ class AuthController
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            $_SESSION['flash_error'] = 'Invalid credentials.';
+            $_SESSION['flash_error'] = 'بيانات الدخول غير صحيحة.';
             header('Location: /login');
             return;
         }
