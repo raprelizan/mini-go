@@ -22,8 +22,8 @@ ob_start();
         <div class="row align-items-center g-5">
             <div class="col-lg-6">
                 <span class="badge text-bg-primary mb-3">مهيأة للدفع عند الاستلام</span>
-                <h2 class="display-5 fw-bold">مركز واحد لإدارة صفحات الهبوط والطلبات لكل تجارك.</h2>
-                <p class="lead">أنشئ صفحات بيع عالية التحويل، اربطها بنطاقات فرعية للتجار، واستقبل الطلبات مباشرة عبر واتساب أو تيليجرام مع لوحة تحكم قوية.</p>
+                <h2 class="display-5 fw-bold">منصة واحدة لتشغيل عشرات التجار بصفحات بيع جاهزة وطلبات فورية.</h2>
+                <p class="lead">نقدم لك نظاماً متكاملاً لإنشاء صفحات هبوط احترافية لكل تاجر مع نطاق فرعي مستقل، وإدارة الطلبات والإشعارات عبر واتساب وتيليجرام من لوحة تحكم عربية سهلة.</p>
                 <div class="d-flex gap-3 flex-wrap">
                     <a class="btn btn-accent" href="/setup">إنشاء أول حساب أدمن</a>
                     <a class="btn btn-outline-light" href="#features">استكشف التفاصيل</a>

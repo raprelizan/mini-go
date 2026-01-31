@@ -48,6 +48,9 @@ ob_start();
                 <input type="text" name="price" class="form-control" placeholder="السعر">
             </div>
             <div class="col-md-2">
+                <input type="text" name="delivery_price" class="form-control" placeholder="سعر التوصيل" value="500">
+            </div>
+            <div class="col-md-2">
                 <button class="btn btn-accent w-100" type="submit">إنشاء صفحة</button>
             </div>
             <div class="col-12">
@@ -87,7 +90,10 @@ ob_start();
                                         <?= htmlspecialchars($page['subdomain']) ?>.<?= htmlspecialchars($appConfig['base_domain']) ?>/p/<?= htmlspecialchars($page['slug']) ?>
                                     </a>
                                 </td>
-                                <td><input class="form-control form-control-sm" name="price" value="<?= htmlspecialchars($page['price']) ?>"></td>
+                                <td>
+                                    <input class="form-control form-control-sm" name="price" value="<?= htmlspecialchars($page['price']) ?>">
+                                    <input class="form-control form-control-sm mt-2" name="delivery_price" value="<?= htmlspecialchars((string) ($page['delivery_price'] ?? '500')) ?>">
+                                </td>
                                 <td>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="is_active" <?= $page['is_active'] ? 'checked' : '' ?>>

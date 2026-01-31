@@ -27,7 +27,7 @@ ob_start();
             <div>
                 <label class="form-label">قالب رسالة الطلب</label>
                 <textarea name="order_message_template" class="form-control" rows="6"><?= htmlspecialchars($merchant['order_message_template']) ?></textarea>
-                <div class="form-text text-secondary">المتغيرات: {{page}} {{name}} {{phone}} {{address}} {{wilaya}}</div>
+                <div class="form-text text-secondary">المتغيرات: {{page}} {{name}} {{phone}} {{address}} {{wilaya}} {{delivery}} {{total}}</div>
             </div>
             <button class="btn btn-accent" type="submit">حفظ الإعدادات</button>
         </form>

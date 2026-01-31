@@ -29,7 +29,14 @@ class LandingPageController
         $fields = Template::fields((int) $page['template_id']);
         $pageData = json_decode($page['content_json'], true) ?? [];
 
-        view('landing/page', [
+        $viewKey = $template['view_key'] ?? 'default';
+        $viewName = $viewKey === 'default' ? 'landing/page' : 'landing/templates/' . $viewKey;
+        $viewFile = __DIR__ . '/../../resources/views/' . $viewName . '.php';
+        if (!file_exists($viewFile)) {
+            $viewName = 'landing/page';
+        }
+
+        view($viewName, [
             'merchant' => $merchant,
             'page' => $page,
             'template' => $template,
@@ -54,6 +61,11 @@ class LandingPageController
             return;
         }
 
+        $pageData = json_decode($page['content_json'], true) ?? [];
+        $deliveryPrice = (int) ($pageData['delivery_price'] ?? 500);
+        $productPrice = (int) preg_replace('/[^0-9]/', '', $page['price']);
+        $totalPrice = $productPrice + $deliveryPrice;
+
         $data = [
             'merchant_id' => (int) $merchant['id'],
             'page_id' => (int) $page['id'],
@@ -61,6 +73,8 @@ class LandingPageController
             'phone' => trim($_POST['phone'] ?? ''),
             'address' => trim($_POST['address'] ?? ''),
             'wilaya' => trim($_POST['wilaya'] ?? ''),
+            'delivery_price' => $deliveryPrice,
+            'total_price' => $totalPrice,
             'status' => 'new',
         ];
 
@@ -72,10 +86,10 @@ class LandingPageController
             }
         }
 
-        $messageTemplate = $merchant['order_message_template'] ?: "New order for {{page}}\nName: {{name}}\nPhone: {{phone}}\nAddress: {{address}}\nWilaya: {{wilaya}}";
+        $messageTemplate = $merchant['order_message_template'] ?: "طلب جديد للصفحة {{page}}\nالاسم: {{name}}\nالهاتف: {{phone}}\nالعنوان: {{address}}\nالولاية: {{wilaya}}\nسعر التوصيل: {{delivery}}\nالإجمالي: {{total}}";
         $message = str_replace(
-            ['{{page}}', '{{name}}', '{{phone}}', '{{address}}', '{{wilaya}}'],
-            [$page['title'], $data['full_name'], $data['phone'], $data['address'], $data['wilaya']],
+            ['{{page}}', '{{name}}', '{{phone}}', '{{address}}', '{{wilaya}}', '{{delivery}}', '{{total}}'],
+            [$page['title'], $data['full_name'], $data['phone'], $data['address'], $data['wilaya'], $deliveryPrice . ' دج', $totalPrice . ' دج'],
             $messageTemplate
         );
 
@@ -89,6 +103,7 @@ class LandingPageController
         view('landing/thank-you', [
             'merchant' => $merchant,
             'page' => $page,
+            'order' => $data,
             'orderId' => $orderId,
             'whatsappLink' => $whatsappLink,
             'telegramLink' => $telegramLink,

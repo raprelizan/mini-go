@@ -28,6 +28,8 @@ ob_start();
                         <th>الصفحة</th>
                         <th>العميل</th>
                         <th>الهاتف</th>
+                        <th>التوصيل</th>
+                        <th>الإجمالي</th>
                         <th>الحالة</th>
                         <th>إجراءات</th>
                     </tr>
@@ -40,6 +42,8 @@ ob_start();
                             <td><?= htmlspecialchars($order['page_title']) ?></td>
                             <td><?= htmlspecialchars($order['full_name']) ?></td>
                             <td><?= htmlspecialchars($order['phone']) ?></td>
+                            <td><?= htmlspecialchars((string) $order['delivery_price']) ?> دج</td>
+                            <td><?= htmlspecialchars((string) $order['total_price']) ?> دج</td>
                             <td>
                                 <form method="post" action="/admin/orders/update" class="d-flex gap-2">
                                     <?= csrf_field() ?>

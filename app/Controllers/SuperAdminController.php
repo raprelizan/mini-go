@@ -50,7 +50,7 @@ class SuperAdminController
             'subdomain' => $subdomain,
             'whatsapp' => '',
             'telegram' => '',
-            'template' => "طلب جديد للصفحة {{page}}\nالاسم: {{name}}\nالهاتف: {{phone}}\nالعنوان: {{address}}\nالولاية: {{wilaya}}",
+            'template' => "طلب جديد للصفحة {{page}}\nالاسم: {{name}}\nالهاتف: {{phone}}\nالعنوان: {{address}}\nالولاية: {{wilaya}}\nسعر التوصيل: {{delivery}}\nالإجمالي: {{total}}",
         ]);
         $merchantId = (int) Database::connection()->lastInsertId();
 
@@ -113,6 +113,7 @@ class SuperAdminController
         Auth::requireRole('super_admin');
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $viewKey = trim($_POST['view_key'] ?? 'default');
 
         if ($name === '') {
             $_SESSION['flash_error'] = 'اسم القالب مطلوب.';
@@ -120,10 +121,11 @@ class SuperAdminController
             return;
         }
 
-        $stmt = Database::connection()->prepare('INSERT INTO templates (name, description, created_at) VALUES (:name, :description, NOW())');
+        $stmt = Database::connection()->prepare('INSERT INTO templates (name, description, view_key, created_at) VALUES (:name, :description, :view_key, NOW())');
         $stmt->execute([
             'name' => $name,
             'description' => $description,
+            'view_key' => $viewKey ?: 'default',
         ]);
         $templateId = (int) Database::connection()->lastInsertId();
 
@@ -132,6 +134,7 @@ class SuperAdminController
             ['field_key' => 'subheadline', 'label' => 'الوصف القصير', 'field_type' => 'text', 'is_editable_by_merchant' => 1],
             ['field_key' => 'features', 'label' => 'مزايا المنتج', 'field_type' => 'textarea', 'is_editable_by_merchant' => 1],
             ['field_key' => 'gallery', 'label' => 'معرض الصور (روابط مفصولة بفواصل)', 'field_type' => 'textarea', 'is_editable_by_merchant' => 1],
+            ['field_key' => 'delivery_price', 'label' => 'سعر التوصيل (دج)', 'field_type' => 'text', 'is_editable_by_merchant' => 1],
         ];
 
         $stmt = Database::connection()->prepare('INSERT INTO template_fields (template_id, field_key, label, field_type, is_editable_by_merchant, display_order) VALUES (:template_id, :field_key, :label, :field_type, :editable, :display_order)');
@@ -156,11 +159,13 @@ class SuperAdminController
         $templateId = (int) ($_POST['template_id'] ?? 0);
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $viewKey = trim($_POST['view_key'] ?? 'default');
 
-        $stmt = Database::connection()->prepare('UPDATE templates SET name = :name, description = :description WHERE id = :id');
+        $stmt = Database::connection()->prepare('UPDATE templates SET name = :name, description = :description, view_key = :view_key WHERE id = :id');
         $stmt->execute([
             'name' => $name,
             'description' => $description,
+            'view_key' => $viewKey ?: 'default',
             'id' => $templateId,
         ]);
 
@@ -184,6 +189,10 @@ class SuperAdminController
         $merchants = Database::connection()->query('SELECT * FROM merchants ORDER BY name')->fetchAll();
         $templates = Database::connection()->query('SELECT * FROM templates ORDER BY name')->fetchAll();
         $pages = Database::connection()->query('SELECT pages.*, merchants.name AS merchant_name, merchants.subdomain FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id ORDER BY pages.created_at DESC')->fetchAll();
+        foreach ($pages as &$page) {
+            $content = json_decode($page['content_json'] ?? '{}', true) ?? [];
+            $page['delivery_price'] = $content['delivery_price'] ?? '500';
+        }
 
         view('admin/pages', [
             'merchants' => $merchants,
@@ -201,6 +210,7 @@ class SuperAdminController
         $slug = trim($_POST['slug'] ?? '');
         $price = trim($_POST['price'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $deliveryPrice = trim($_POST['delivery_price'] ?? '500');
 
         if ($merchantId === 0 || $templateId === 0 || $title === '' || $slug === '') {
             $_SESSION['flash_error'] = 'يرجى ملء جميع بيانات الصفحة.';
@@ -213,6 +223,7 @@ class SuperAdminController
             'subheadline' => $description,
             'features' => "- توصيل سريع\n- الدفع عند الاستلام\n- منتج موثوق",
             'gallery' => '',
+            'delivery_price' => $deliveryPrice,
         ];
 
         $stmt = Database::connection()->prepare('INSERT INTO pages (merchant_id, template_id, title, slug, price, description, content_json, is_active, created_at) VALUES (:merchant_id, :template_id, :title, :slug, :price, :description, :content_json, 1, NOW())');
@@ -238,7 +249,14 @@ class SuperAdminController
         $slug = trim($_POST['slug'] ?? '');
         $price = trim($_POST['price'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $deliveryPrice = trim($_POST['delivery_price'] ?? '500');
         $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        $pageStmt = Database::connection()->prepare('SELECT content_json FROM pages WHERE id = :id');
+        $pageStmt->execute(['id' => $pageId]);
+        $page = $pageStmt->fetch();
+        $content = json_decode($page['content_json'] ?? '{}', true) ?? [];
+        $content['delivery_price'] = $deliveryPrice;
 
         $stmt = Database::connection()->prepare('UPDATE pages SET title = :title, slug = :slug, price = :price, description = :description, is_active = :is_active, updated_at = NOW() WHERE id = :id');
         $stmt->execute([
@@ -247,6 +265,12 @@ class SuperAdminController
             'price' => $price,
             'description' => $description,
             'is_active' => $isActive,
+            'id' => $pageId,
+        ]);
+
+        $contentStmt = Database::connection()->prepare('UPDATE pages SET content_json = :content_json WHERE id = :id');
+        $contentStmt->execute([
+            'content_json' => json_encode($content, JSON_UNESCAPED_UNICODE),
             'id' => $pageId,
         ]);
 

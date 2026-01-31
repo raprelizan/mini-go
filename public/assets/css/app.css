@@ -189,6 +189,36 @@ a {
     margin-top: 24px;
 }
 
+.order-summary {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.summary-row,
+.sheet-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.summary-row.total,
+.sheet-row.total {
+    border-bottom: none;
+    font-size: 1.1rem;
+}
+
+.order-sheet {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+}
+
 .list-group-dark .list-group-item {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;

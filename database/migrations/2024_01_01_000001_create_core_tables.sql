@@ -26,6 +26,7 @@ CREATE TABLE templates (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(120) NOT NULL,
     description VARCHAR(255) NOT NULL,
+    view_key VARCHAR(120) NOT NULL DEFAULT 'default',
     created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -69,6 +70,8 @@ CREATE TABLE orders (
     phone VARCHAR(80) NOT NULL,
     address VARCHAR(255) NOT NULL,
     wilaya VARCHAR(120) NOT NULL,
+    delivery_price INT NOT NULL DEFAULT 500,
+    total_price INT NOT NULL DEFAULT 0,
     status VARCHAR(40) NOT NULL DEFAULT 'new',
     message_payload TEXT NOT NULL,
     created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,

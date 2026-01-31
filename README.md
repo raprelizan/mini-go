@@ -39,6 +39,12 @@ The platform reads `HTTP_HOST` and extracts the subdomain relative to `APP_BASE_
 merchant.yourplatform.com/p/product-slug
 ```
 
+## Custom Templates
+To add a new landing template:
+1. Create a view file at `resources/views/landing/templates/<view_key>.php`.
+2. In the Super Admin panel, create a template and set `view_key` to match the filename.
+3. Add the needed `template_fields` (headline, gallery, delivery_price, etc.) and reference them in the view via `pageData`.
+
 ## WhatsApp & Telegram
 - WhatsApp uses `wa.me` links with prefilled message text.
 - Set `TELEGRAM_BOT_TOKEN` to enable automatic bot delivery to the merchant chat ID; otherwise the UI provides a share link.

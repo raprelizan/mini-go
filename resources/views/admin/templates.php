@@ -21,11 +21,14 @@ ob_start();
     <div class="card-body">
         <form method="post" action="/admin/templates" class="row g-3">
             <?= csrf_field() ?>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="text" name="name" class="form-control" placeholder="اسم القالب" required>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <input type="text" name="description" class="form-control" placeholder="وصف مختصر">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="view_key" class="form-control" placeholder="template-key" value="default">
             </div>
             <div class="col-md-2">
                 <button class="btn btn-accent w-100" type="submit">إضافة قالب</button>
@@ -42,6 +45,7 @@ ob_start();
                     <input type="hidden" name="template_id" value="<?= (int) $template['id'] ?>">
                     <input type="text" class="form-control" name="name" value="<?= htmlspecialchars($template['name']) ?>">
                     <textarea class="form-control" name="description" rows="3"><?= htmlspecialchars($template['description']) ?></textarea>
+                    <input type="text" class="form-control" name="view_key" value="<?= htmlspecialchars($template['view_key'] ?? 'default') ?>">
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-light" type="submit">حفظ</button>
                         <button class="btn btn-sm btn-outline-danger" type="submit" formaction="/admin/templates/delete" onclick="return confirm('هل تريد حذف القالب؟');">حذف القالب</button>
