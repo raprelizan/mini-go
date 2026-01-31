@@ -6,6 +6,7 @@ use App\Models\Merchant;
 use App\Models\Page;
 use App\Models\Template;
 use App\Models\Order;
+use App\Core\Database;
 
 class LandingPageController
 {
