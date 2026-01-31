@@ -287,6 +287,8 @@ class SuperAdminController
     {
         Auth::requireRole('super_admin');
         $merchantId = (int) ($_POST['merchant_id'] ?? 0);
+        $userStmt = Database::connection()->prepare('DELETE FROM users WHERE merchant_id = :merchant_id');
+        $userStmt->execute(['merchant_id' => $merchantId]);
         $stmt = Database::connection()->prepare('DELETE FROM merchants WHERE id = :id');
         $stmt->execute(['id' => $merchantId]);
         $_SESSION['flash_success'] = 'تم حذف التاجر.';
