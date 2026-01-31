@@ -18,8 +18,10 @@ $router->post('/setup', [new SetupController(), 'store']);
 
 $router->get('/admin', [new SuperAdminController(), 'dashboard']);
 $router->get('/admin/merchants', [new SuperAdminController(), 'merchantsIndex']);
+$router->get('/admin/merchants/profile', [new SuperAdminController(), 'merchantProfile']);
 $router->post('/admin/merchants', [new SuperAdminController(), 'createMerchant']);
 $router->post('/admin/merchants/update', [new SuperAdminController(), 'updateMerchant']);
+$router->post('/admin/merchants/profile', [new SuperAdminController(), 'updateMerchantProfile']);
 $router->post('/admin/merchants/delete', [new SuperAdminController(), 'deleteMerchant']);
 
 $router->get('/admin/templates', [new SuperAdminController(), 'templatesIndex']);
@@ -51,12 +53,14 @@ $router->post('/merchant/pages/update', [new MerchantController(), 'updatePage']
 $router->get('/merchant/settings', [new MerchantController(), 'settings']);
 $router->post('/merchant/settings', [new MerchantController(), 'updateSettings']);
 
-$router->get('/p/{slug}', function (string $slug) {
-    $subdomain = request_subdomain();
-    (new LandingPageController())->show($subdomain, $slug);
+$router->get('/{merchant_code}', function (string $merchant_code) {
+    (new LandingPageController())->profile($merchant_code);
 });
 
-$router->post('/p/{slug}/order', function (string $slug) {
-    $subdomain = request_subdomain();
-    (new LandingPageController())->order($subdomain, $slug);
+$router->get('/{merchant_code}/{slug}', function (string $merchant_code, string $slug) {
+    (new LandingPageController())->show($merchant_code, $slug);
+});
+
+$router->post('/{merchant_code}/{slug}/order', function (string $merchant_code, string $slug) {
+    (new LandingPageController())->order($merchant_code, $slug);
 });

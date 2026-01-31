@@ -30,6 +30,56 @@ class SuperAdminController
         view('admin/merchants', ['merchants' => $merchants]);
     }
 
+    public function merchantProfile(): void
+    {
+        Auth::requireRole('super_admin');
+        $merchantId = (int) ($_GET['merchant_id'] ?? 0);
+        $stmt = Database::connection()->prepare('SELECT * FROM merchants WHERE id = :id');
+        $stmt->execute(['id' => $merchantId]);
+        $merchant = $stmt->fetch();
+
+        if (!$merchant) {
+            http_response_code(404);
+            echo 'Merchant not found.';
+            return;
+        }
+
+        view('admin/merchant-profile', ['merchant' => $merchant]);
+    }
+
+    public function updateMerchantProfile(): void
+    {
+        Auth::requireRole('super_admin');
+        $merchantId = (int) ($_POST['merchant_id'] ?? 0);
+
+        $data = [
+            'name' => trim($_POST['name'] ?? ''),
+            'subdomain' => trim($_POST['subdomain'] ?? ''),
+            'profile_name' => trim($_POST['profile_name'] ?? ''),
+            'profile_bio' => trim($_POST['profile_bio'] ?? ''),
+            'profile_about' => trim($_POST['profile_about'] ?? ''),
+            'profile_phone' => trim($_POST['profile_phone'] ?? ''),
+            'profile_email' => trim($_POST['profile_email'] ?? ''),
+            'profile_address' => trim($_POST['profile_address'] ?? ''),
+            'logo_url' => trim($_POST['logo_url'] ?? ''),
+            'cover_url' => trim($_POST['cover_url'] ?? ''),
+            'instagram_url' => trim($_POST['instagram_url'] ?? ''),
+            'facebook_url' => trim($_POST['facebook_url'] ?? ''),
+            'tiktok_url' => trim($_POST['tiktok_url'] ?? ''),
+            'website_url' => trim($_POST['website_url'] ?? ''),
+            'whatsapp_number' => trim($_POST['whatsapp_number'] ?? ''),
+            'telegram_chat_id' => trim($_POST['telegram_chat_id'] ?? ''),
+            'is_active' => isset($_POST['is_active']) ? 1 : 0,
+            'id' => $merchantId,
+        ];
+
+        $stmt = Database::connection()->prepare('UPDATE merchants SET name = :name, subdomain = :subdomain, profile_name = :profile_name, profile_bio = :profile_bio, profile_about = :profile_about, profile_phone = :profile_phone, profile_email = :profile_email, profile_address = :profile_address, logo_url = :logo_url, cover_url = :cover_url, instagram_url = :instagram_url, facebook_url = :facebook_url, tiktok_url = :tiktok_url, website_url = :website_url, whatsapp_number = :whatsapp_number, telegram_chat_id = :telegram_chat_id, is_active = :is_active WHERE id = :id');
+        $stmt->execute($data);
+
+        $_SESSION['flash_success'] = 'تم تحديث الملف التعريفي للتاجر.';
+        header('Location: /admin/merchants/profile?merchant_id=' . $merchantId);
+    }
+
     public function createMerchant(): void
     {
         Auth::requireRole('super_admin');

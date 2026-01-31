@@ -1,5 +1,4 @@
 <?php
-$appConfig = require __DIR__ . '/../../../config/app.php';
 $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<nav class="nav flex-column">'
     . '<a class="nav-link" href="/admin">نظرة عامة</a>'
@@ -15,7 +14,7 @@ $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '</form>'
     . '</nav>';
 $title = 'إدارة التجار';
-$subtitle = 'إنشاء وتعديل التجار وروابط النطاقات الفرعية.';
+$subtitle = 'إدارة أكواد التجار والملفات التعريفية والروابط.';
 ob_start();
 ?>
 <div class="card app-card mb-4">
@@ -26,7 +25,7 @@ ob_start();
                 <input type="text" name="name" class="form-control" placeholder="اسم التاجر" required>
             </div>
             <div class="col-md-2">
-                <input type="text" name="subdomain" class="form-control" placeholder="النطاق الفرعي" required>
+                <input type="text" name="subdomain" class="form-control" placeholder="كود التاجر" required>
             </div>
             <div class="col-md-3">
                 <input type="email" name="email" class="form-control" placeholder="بريد المالك" required>
@@ -47,7 +46,7 @@ ob_start();
                 <thead>
                     <tr>
                         <th>التاجر</th>
-                        <th>النطاق الفرعي</th>
+                        <th>كود التاجر</th>
                         <th>الرابط</th>
                         <th>واتساب</th>
                         <th>تيليجرام</th>
@@ -64,8 +63,8 @@ ob_start();
                                 <td><input class="form-control form-control-sm" name="name" value="<?= htmlspecialchars($merchant['name']) ?>"></td>
                                 <td><input class="form-control form-control-sm" name="subdomain" value="<?= htmlspecialchars($merchant['subdomain']) ?>"></td>
                                 <td>
-                                    <a class="link-accent" href="https://<?= htmlspecialchars($merchant['subdomain']) ?>.<?= htmlspecialchars($appConfig['base_domain']) ?>" target="_blank">
-                                        <?= htmlspecialchars($merchant['subdomain']) ?>.<?= htmlspecialchars($appConfig['base_domain']) ?>
+                                    <a class="link-accent" href="/<?= htmlspecialchars($merchant['subdomain']) ?>" target="_blank">
+                                        /<?= htmlspecialchars($merchant['subdomain']) ?>
                                     </a>
                                 </td>
                                 <td><input class="form-control form-control-sm" name="whatsapp_number" value="<?= htmlspecialchars($merchant['whatsapp_number']) ?>"></td>
@@ -77,6 +76,7 @@ ob_start();
                                 </td>
                                 <td class="d-flex gap-2">
                                     <button class="btn btn-sm btn-outline-light" type="submit">حفظ</button>
+                                    <a class="btn btn-sm btn-outline-info" href="/admin/merchants/profile?merchant_id=<?= (int) $merchant['id'] ?>">الملف التعريفي</a>
                             </form>
                                     <form method="post" action="/admin/merchants/delete" onsubmit="return confirm('هل تريد حذف التاجر؟');">
                                         <?= csrf_field() ?>

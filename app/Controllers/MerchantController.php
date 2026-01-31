@@ -14,12 +14,16 @@ class MerchantController
     {
         Auth::requireRole('merchant');
         $merchantId = (int) Auth::user()['merchant_id'];
+        $merchantStmt = Database::connection()->prepare('SELECT * FROM merchants WHERE id = :id');
+        $merchantStmt->execute(['id' => $merchantId]);
+        $merchant = $merchantStmt->fetch();
         $pages = Page::allForMerchant($merchantId);
         $orders = Order::allForMerchant($merchantId);
 
         view('merchant/dashboard', [
             'pages' => $pages,
             'orders' => $orders,
+            'merchant' => $merchant,
         ]);
     }
 
@@ -111,16 +115,40 @@ class MerchantController
         $whatsapp = trim($_POST['whatsapp_number'] ?? '');
         $telegram = trim($_POST['telegram_chat_id'] ?? '');
         $template = trim($_POST['order_message_template'] ?? '');
+        $profileName = trim($_POST['profile_name'] ?? '');
+        $profileBio = trim($_POST['profile_bio'] ?? '');
+        $profileAbout = trim($_POST['profile_about'] ?? '');
+        $profilePhone = trim($_POST['profile_phone'] ?? '');
+        $profileEmail = trim($_POST['profile_email'] ?? '');
+        $profileAddress = trim($_POST['profile_address'] ?? '');
+        $logoUrl = trim($_POST['logo_url'] ?? '');
+        $coverUrl = trim($_POST['cover_url'] ?? '');
+        $instagramUrl = trim($_POST['instagram_url'] ?? '');
+        $facebookUrl = trim($_POST['facebook_url'] ?? '');
+        $tiktokUrl = trim($_POST['tiktok_url'] ?? '');
+        $websiteUrl = trim($_POST['website_url'] ?? '');
 
-        $stmt = Database::connection()->prepare('UPDATE merchants SET whatsapp_number = :whatsapp, telegram_chat_id = :telegram, order_message_template = :template WHERE id = :id');
+        $stmt = Database::connection()->prepare('UPDATE merchants SET whatsapp_number = :whatsapp, telegram_chat_id = :telegram, order_message_template = :template, profile_name = :profile_name, profile_bio = :profile_bio, profile_about = :profile_about, profile_phone = :profile_phone, profile_email = :profile_email, profile_address = :profile_address, logo_url = :logo_url, cover_url = :cover_url, instagram_url = :instagram_url, facebook_url = :facebook_url, tiktok_url = :tiktok_url, website_url = :website_url WHERE id = :id');
         $stmt->execute([
             'whatsapp' => $whatsapp,
             'telegram' => $telegram,
             'template' => $template,
+            'profile_name' => $profileName,
+            'profile_bio' => $profileBio,
+            'profile_about' => $profileAbout,
+            'profile_phone' => $profilePhone,
+            'profile_email' => $profileEmail,
+            'profile_address' => $profileAddress,
+            'logo_url' => $logoUrl,
+            'cover_url' => $coverUrl,
+            'instagram_url' => $instagramUrl,
+            'facebook_url' => $facebookUrl,
+            'tiktok_url' => $tiktokUrl,
+            'website_url' => $websiteUrl,
             'id' => $merchantId,
         ]);
 
-        $_SESSION['flash_success'] = 'Settings updated successfully.';
+        $_SESSION['flash_success'] = 'تم تحديث الإعدادات بنجاح.';
         header('Location: /merchant/settings');
     }
 }

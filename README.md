@@ -32,11 +32,11 @@ DB_PASSWORD=
 ## Database
 Run the SQL file in `database/migrations/2024_01_01_000001_create_core_tables.sql` to create required tables.
 
-## Subdomain Routing
-The platform reads `HTTP_HOST` and extracts the subdomain relative to `APP_BASE_DOMAIN`. Merchant landing pages live at:
+## Merchant Routing
+Merchant landing pages live under a simple merchant code path:
 
 ```
-merchant.yourplatform.com/p/product-slug
+yourplatform.com/merchant-code/product-slug
 ```
 
 ## Custom Templates

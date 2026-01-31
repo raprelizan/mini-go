@@ -44,7 +44,7 @@ ob_start();
                 </div>
                 <div class="order-card">
                     <h4>اطلب الآن</h4>
-                    <form method="post" action="/p/<?= htmlspecialchars($page['slug']) ?>/order" class="vstack gap-3" data-delivery="<?= $deliveryPrice ?>" data-product="<?= $productPrice ?>" data-delivery-map='<?= htmlspecialchars($deliveryPricesJson) ?>'>
+                    <form method="post" action="/<?= htmlspecialchars($merchant['subdomain']) ?>/<?= htmlspecialchars($page['slug']) ?>/order" class="vstack gap-3" data-delivery="<?= $deliveryPrice ?>" data-product="<?= $productPrice ?>" data-delivery-map='<?= htmlspecialchars($deliveryPricesJson) ?>'>
                         <?= csrf_field() ?>
                         <input type="text" name="full_name" class="form-control" placeholder="الاسم الكامل" required>
                         <input type="text" name="phone" class="form-control" placeholder="رقم الهاتف" required>

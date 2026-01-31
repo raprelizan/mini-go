@@ -9,9 +9,23 @@ use App\Models\Order;
 
 class LandingPageController
 {
-    public function show(string $subdomain, string $slug): void
+    public function profile(string $merchantCode): void
     {
-        $merchant = Merchant::findBySubdomain($subdomain);
+        $merchant = Merchant::findByCode($merchantCode);
+        if (!$merchant) {
+            http_response_code(404);
+            echo 'Merchant not found.';
+            return;
+        }
+
+        view('landing/profile', [
+            'merchant' => $merchant,
+        ]);
+    }
+
+    public function show(string $merchantCode, string $slug): void
+    {
+        $merchant = Merchant::findByCode($merchantCode);
         if (!$merchant) {
             http_response_code(404);
             echo 'Merchant not found.';
@@ -47,9 +61,9 @@ class LandingPageController
         ]);
     }
 
-    public function order(string $subdomain, string $slug): void
+    public function order(string $merchantCode, string $slug): void
     {
-        $merchant = Merchant::findBySubdomain($subdomain);
+        $merchant = Merchant::findByCode($merchantCode);
         if (!$merchant) {
             http_response_code(404);
             echo 'Merchant not found.';
@@ -84,8 +98,8 @@ class LandingPageController
 
         foreach (['full_name', 'phone', 'address', 'wilaya'] as $field) {
             if ($data[$field] === '') {
-                $_SESSION['flash_error'] = 'Please fill in all fields.';
-                header('Location: /p/' . $slug);
+                $_SESSION['flash_error'] = 'يرجى ملء جميع الحقول.';
+                header('Location: /' . $merchantCode . '/' . $slug);
                 return;
             }
         }

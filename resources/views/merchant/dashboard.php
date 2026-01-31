@@ -24,7 +24,7 @@ ob_start();
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <strong><?= htmlspecialchars($page['title']) ?></strong>
-                                <div class="text-secondary">/p/<?= htmlspecialchars($page['slug']) ?></div>
+                                <div class="text-secondary">/<?= htmlspecialchars($merchant['subdomain'] ?? '') ?>/<?= htmlspecialchars($page['slug']) ?></div>
                             </div>
                             <a class="btn btn-sm btn-outline-light" href="/merchant/pages/edit?page_id=<?= (int) $page['id'] ?>">تعديل</a>
                         </li>

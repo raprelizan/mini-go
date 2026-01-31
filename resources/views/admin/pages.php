@@ -1,5 +1,4 @@
 <?php
-$appConfig = require __DIR__ . '/../../../config/app.php';
 $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<nav class="nav flex-column">'
     . '<a class="nav-link" href="/admin">نظرة عامة</a>'
@@ -91,8 +90,8 @@ ob_start();
                                 </td>
                                 <td><?= htmlspecialchars($page['merchant_name']) ?></td>
                                 <td>
-                                    <a class="link-accent" target="_blank" href="https://<?= htmlspecialchars($page['subdomain']) ?>.<?= htmlspecialchars($appConfig['base_domain']) ?>/p/<?= htmlspecialchars($page['slug']) ?>">
-                                        <?= htmlspecialchars($page['subdomain']) ?>.<?= htmlspecialchars($appConfig['base_domain']) ?>/p/<?= htmlspecialchars($page['slug']) ?>
+                                    <a class="link-accent" target="_blank" href="/<?= htmlspecialchars($page['subdomain']) ?>/<?= htmlspecialchars($page['slug']) ?>">
+                                        /<?= htmlspecialchars($page['subdomain']) ?>/<?= htmlspecialchars($page['slug']) ?>
                                     </a>
                                 </td>
                                 <td>
