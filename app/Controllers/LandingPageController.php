@@ -42,7 +42,7 @@ class LandingPageController
         $template = Template::find((int) $page['template_id']);
         $fields = Template::fields((int) $page['template_id']);
         $pageData = json_decode($page['content_json'], true) ?? [];
-        $deliveryPrices = $this->deliveryPriceMap($pageData);
+        $deliveryPrices = $this->deliveryPriceMap($pageData, $merchant);
 
         $viewKey = $template['view_key'] ?? 'default';
         $viewName = $viewKey === 'default' ? 'landing/page' : 'landing/templates/' . $viewKey;
@@ -78,15 +78,17 @@ class LandingPageController
         }
 
         $pageData = json_decode($page['content_json'], true) ?? [];
-        $deliveryPrices = $this->deliveryPriceMap($pageData);
+        $deliveryPrices = $this->deliveryPriceMap($pageData, $merchant);
         $productPrice = (int) preg_replace('/[^0-9]/', '', $page['price']);
         $wilaya = trim($_POST['wilaya'] ?? '');
         $deliveryPrice = (int) ($deliveryPrices[$wilaya] ?? 500);
         $totalPrice = $productPrice + $deliveryPrice;
+        $orderCode = $this->nextOrderCode((int) $merchant['id'], $merchant['order_prefix'] ?? 'GFM');
 
         $data = [
             'merchant_id' => (int) $merchant['id'],
             'page_id' => (int) $page['id'],
+            'order_code' => $orderCode,
             'full_name' => trim($_POST['full_name'] ?? ''),
             'phone' => trim($_POST['phone'] ?? ''),
             'address' => trim($_POST['address'] ?? ''),
@@ -123,6 +125,7 @@ class LandingPageController
             'page' => $page,
             'order' => $data,
             'orderId' => $orderId,
+            'orderCode' => $orderCode,
             'whatsappLink' => $whatsappLink,
             'telegramLink' => $telegramLink,
         ]);
@@ -178,7 +181,7 @@ class LandingPageController
         curl_close($ch);
     }
 
-    private function deliveryPriceMap(array $pageData): array
+    private function deliveryPriceMap(array $pageData, ?array $merchant = null): array
     {
         $default = 500;
         $wilayas = [
@@ -203,6 +206,16 @@ class LandingPageController
             }
         }
 
+        if (!is_array($custom) && $merchant) {
+            $merchantPrices = $merchant['delivery_prices_json'] ?? null;
+            if (is_string($merchantPrices)) {
+                $decoded = json_decode($merchantPrices, true);
+                if (is_array($decoded)) {
+                    $custom = $decoded;
+                }
+            }
+        }
+
         if (is_array($custom)) {
             foreach ($custom as $wilaya => $price) {
                 if (isset($prices[$wilaya]) && is_numeric($price)) {
@@ -212,5 +225,15 @@ class LandingPageController
         }
 
         return $prices;
+    }
+
+    private function nextOrderCode(int $merchantId, string $prefix): string
+    {
+        $prefix = $prefix ?: 'GFM';
+        $stmt = Database::connection()->prepare('SELECT COUNT(*) AS count FROM orders WHERE merchant_id = :merchant_id');
+        $stmt->execute(['merchant_id' => $merchantId]);
+        $count = (int) ($stmt->fetch()['count'] ?? 0) + 1;
+
+        return strtoupper($prefix) . str_pad((string) $count, 5, '0', STR_PAD_LEFT);
     }
 }

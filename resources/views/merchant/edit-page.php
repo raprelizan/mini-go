@@ -14,7 +14,7 @@ ob_start();
 ?>
 <div class="card app-card">
     <div class="card-body">
-        <form method="post" action="/merchant/pages/update" class="vstack gap-3">
+        <form method="post" action="/merchant/pages/update" class="vstack gap-3" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <input type="hidden" name="page_id" value="<?= (int) $page['id'] ?>">
             <?php foreach ($fields as $field) : ?>
@@ -26,6 +26,10 @@ ob_start();
                     <label class="form-label"><?= htmlspecialchars($field['label']) ?></label>
                     <?php if ($field['field_type'] === 'textarea') : ?>
                         <textarea name="field_<?= htmlspecialchars($field['field_key']) ?>" class="form-control" rows="4"><?= htmlspecialchars($pageData[$field['field_key']] ?? '') ?></textarea>
+                        <?php if ($field['field_key'] === 'gallery') : ?>
+                            <input type="file" name="gallery_files[]" class="form-control mt-2" multiple accept="image/*">
+                            <div class="form-text text-secondary">يمكنك إضافة روابط أو رفع صور وسيتم حفظها تلقائياً.</div>
+                        <?php endif; ?>
                     <?php else : ?>
                         <input type="text" name="field_<?= htmlspecialchars($field['field_key']) ?>" class="form-control" value="<?= htmlspecialchars($pageData[$field['field_key']] ?? '') ?>">
                     <?php endif; ?>

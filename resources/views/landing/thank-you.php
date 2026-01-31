@@ -7,8 +7,8 @@ ob_start();
 <div class="container">
     <div class="card app-card">
         <div class="card-body">
-            <h3 class="mb-3">شكراً لطلبك!</h3>
-            <p>رقم الطلب <strong>#<?= htmlspecialchars((string) $orderId) ?></strong>. سيتم التواصل معك قريباً.</p>
+            <h3 class="mb-3 text-white">شكراً لطلبك!</h3>
+            <p class="text-white">رقم الطلب <strong><?= htmlspecialchars($orderCode ?? ('#' . (string) $orderId)) ?></strong>. سيتم التواصل معك قريباً.</p>
             <div class="order-sheet">
                 <h5>ملخص الطلب</h5>
                 <div class="sheet-row"><span>الاسم</span><strong><?= htmlspecialchars($order['full_name']) ?></strong></div>

@@ -77,6 +77,7 @@ ob_start();
                                 <td class="d-flex gap-2">
                                     <button class="btn btn-sm btn-outline-light" type="submit">حفظ</button>
                                     <a class="btn btn-sm btn-outline-info" href="/admin/merchants/profile?merchant_id=<?= (int) $merchant['id'] ?>">الملف التعريفي</a>
+                                    <a class="btn btn-sm btn-outline-info" href="/admin/merchants/delivery-prices?merchant_id=<?= (int) $merchant['id'] ?>">أسعار التوصيل</a>
                             </form>
                                     <form method="post" action="/admin/merchants/delete" onsubmit="return confirm('هل تريد حذف التاجر؟');">
                                         <?= csrf_field() ?>

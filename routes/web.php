@@ -19,9 +19,11 @@ $router->post('/setup', [new SetupController(), 'store']);
 $router->get('/admin', [new SuperAdminController(), 'dashboard']);
 $router->get('/admin/merchants', [new SuperAdminController(), 'merchantsIndex']);
 $router->get('/admin/merchants/profile', [new SuperAdminController(), 'merchantProfile']);
+$router->get('/admin/merchants/delivery-prices', [new SuperAdminController(), 'merchantDeliveryPrices']);
 $router->post('/admin/merchants', [new SuperAdminController(), 'createMerchant']);
 $router->post('/admin/merchants/update', [new SuperAdminController(), 'updateMerchant']);
 $router->post('/admin/merchants/profile', [new SuperAdminController(), 'updateMerchantProfile']);
+$router->post('/admin/merchants/delivery-prices', [new SuperAdminController(), 'updateMerchantDeliveryPrices']);
 $router->post('/admin/merchants/delete', [new SuperAdminController(), 'deleteMerchant']);
 
 $router->get('/admin/templates', [new SuperAdminController(), 'templatesIndex']);
@@ -52,6 +54,9 @@ $router->get('/merchant/pages/edit', [new MerchantController(), 'editPage']);
 $router->post('/merchant/pages/update', [new MerchantController(), 'updatePage']);
 $router->get('/merchant/settings', [new MerchantController(), 'settings']);
 $router->post('/merchant/settings', [new MerchantController(), 'updateSettings']);
+$router->get('/merchant/orders', [new MerchantController(), 'orders']);
+$router->get('/merchant/delivery-prices', [new MerchantController(), 'deliveryPrices']);
+$router->post('/merchant/delivery-prices', [new MerchantController(), 'updateDeliveryPrices']);
 
 $router->get('/{merchant_code}', function (string $merchant_code) {
     (new LandingPageController())->profile($merchant_code);

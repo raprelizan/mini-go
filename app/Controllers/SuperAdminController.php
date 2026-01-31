@@ -47,6 +47,49 @@ class SuperAdminController
         view('admin/merchant-profile', ['merchant' => $merchant]);
     }
 
+    public function merchantDeliveryPrices(): void
+    {
+        Auth::requireRole('super_admin');
+        $merchantId = (int) ($_GET['merchant_id'] ?? 0);
+        $stmt = Database::connection()->prepare('SELECT * FROM merchants WHERE id = :id');
+        $stmt->execute(['id' => $merchantId]);
+        $merchant = $stmt->fetch();
+
+        if (!$merchant) {
+            http_response_code(404);
+            echo 'Merchant not found.';
+            return;
+        }
+
+        $defaultDeliveryPrices = $this->defaultDeliveryPrices();
+        view('admin/merchant-delivery-prices', [
+            'merchant' => $merchant,
+            'defaultDeliveryPrices' => $defaultDeliveryPrices,
+        ]);
+    }
+
+    public function updateMerchantDeliveryPrices(): void
+    {
+        Auth::requireRole('super_admin');
+        $merchantId = (int) ($_POST['merchant_id'] ?? 0);
+        $deliveryPrices = trim($_POST['delivery_prices_json'] ?? '');
+        $orderPrefix = trim($_POST['order_prefix'] ?? 'GFM');
+
+        if ($deliveryPrices === '') {
+            $deliveryPrices = json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE);
+        }
+
+        $stmt = Database::connection()->prepare('UPDATE merchants SET delivery_prices_json = :delivery_prices_json, order_prefix = :order_prefix WHERE id = :id');
+        $stmt->execute([
+            'delivery_prices_json' => $deliveryPrices,
+            'order_prefix' => $orderPrefix,
+            'id' => $merchantId,
+        ]);
+
+        $_SESSION['flash_success'] = 'تم تحديث أسعار التوصيل.';
+        header('Location: /admin/merchants/delivery-prices?merchant_id=' . $merchantId);
+    }
+
     public function updateMerchantProfile(): void
     {
         Auth::requireRole('super_admin');
@@ -67,13 +110,14 @@ class SuperAdminController
             'facebook_url' => trim($_POST['facebook_url'] ?? ''),
             'tiktok_url' => trim($_POST['tiktok_url'] ?? ''),
             'website_url' => trim($_POST['website_url'] ?? ''),
+            'order_prefix' => trim($_POST['order_prefix'] ?? 'GFM'),
             'whatsapp_number' => trim($_POST['whatsapp_number'] ?? ''),
             'telegram_chat_id' => trim($_POST['telegram_chat_id'] ?? ''),
             'is_active' => isset($_POST['is_active']) ? 1 : 0,
             'id' => $merchantId,
         ];
 
-        $stmt = Database::connection()->prepare('UPDATE merchants SET name = :name, subdomain = :subdomain, profile_name = :profile_name, profile_bio = :profile_bio, profile_about = :profile_about, profile_phone = :profile_phone, profile_email = :profile_email, profile_address = :profile_address, logo_url = :logo_url, cover_url = :cover_url, instagram_url = :instagram_url, facebook_url = :facebook_url, tiktok_url = :tiktok_url, website_url = :website_url, whatsapp_number = :whatsapp_number, telegram_chat_id = :telegram_chat_id, is_active = :is_active WHERE id = :id');
+        $stmt = Database::connection()->prepare('UPDATE merchants SET name = :name, subdomain = :subdomain, profile_name = :profile_name, profile_bio = :profile_bio, profile_about = :profile_about, profile_phone = :profile_phone, profile_email = :profile_email, profile_address = :profile_address, logo_url = :logo_url, cover_url = :cover_url, instagram_url = :instagram_url, facebook_url = :facebook_url, tiktok_url = :tiktok_url, website_url = :website_url, order_prefix = :order_prefix, whatsapp_number = :whatsapp_number, telegram_chat_id = :telegram_chat_id, is_active = :is_active WHERE id = :id');
         $stmt->execute($data);
 
         $_SESSION['flash_success'] = 'تم تحديث الملف التعريفي للتاجر.';
@@ -94,10 +138,12 @@ class SuperAdminController
             return;
         }
 
-        $stmt = Database::connection()->prepare('INSERT INTO merchants (name, subdomain, whatsapp_number, telegram_chat_id, order_message_template, is_active, created_at) VALUES (:name, :subdomain, :whatsapp, :telegram, :template, 1, NOW())');
+        $stmt = Database::connection()->prepare('INSERT INTO merchants (name, subdomain, order_prefix, delivery_prices_json, whatsapp_number, telegram_chat_id, order_message_template, is_active, created_at) VALUES (:name, :subdomain, :order_prefix, :delivery_prices_json, :whatsapp, :telegram, :template, 1, NOW())');
         $stmt->execute([
             'name' => $name,
             'subdomain' => $subdomain,
+            'order_prefix' => 'GFM',
+            'delivery_prices_json' => json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE),
             'whatsapp' => '',
             'telegram' => '',
             'template' => "طلب جديد للصفحة {{page}}\nالاسم: {{name}}\nالهاتف: {{phone}}\nالعنوان: {{address}}\nالولاية: {{wilaya}}\nسعر التوصيل: {{delivery}}\nالإجمالي: {{total}}",

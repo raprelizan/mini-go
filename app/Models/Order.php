@@ -8,7 +8,7 @@ class Order
 {
     public static function create(array $data): int
     {
-        $stmt = Database::connection()->prepare('INSERT INTO orders (merchant_id, page_id, full_name, phone, address, wilaya, delivery_price, total_price, status, message_payload, created_at) VALUES (:merchant_id, :page_id, :full_name, :phone, :address, :wilaya, :delivery_price, :total_price, :status, :message_payload, NOW())');
+        $stmt = Database::connection()->prepare('INSERT INTO orders (merchant_id, page_id, order_code, full_name, phone, address, wilaya, delivery_price, total_price, status, message_payload, created_at) VALUES (:merchant_id, :page_id, :order_code, :full_name, :phone, :address, :wilaya, :delivery_price, :total_price, :status, :message_payload, NOW())');
         $stmt->execute($data);
         return (int) Database::connection()->lastInsertId();
     }

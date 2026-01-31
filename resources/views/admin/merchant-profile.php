@@ -65,6 +65,16 @@ ob_start();
             </div>
             <div class="row g-3">
                 <div class="col-md-4">
+                    <label class="form-label">بادئة رقم الطلبية</label>
+                    <input type="text" name="order_prefix" class="form-control" value="<?= htmlspecialchars($merchant['order_prefix'] ?? 'GFM') ?>">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">صفحة أسعار التوصيل</label>
+                    <a class="btn btn-outline-info w-100" href="/admin/merchants/delivery-prices?merchant_id=<?= (int) $merchant['id'] ?>">إدارة الأسعار</a>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
                     <label class="form-label">الاسم الظاهر</label>
                     <input type="text" name="profile_name" class="form-control" value="<?= htmlspecialchars($merchant['profile_name']) ?>">
                 </div>

@@ -2,6 +2,8 @@
 $sidebar = '<div class="brand">لوحة التاجر</div>'
     . '<nav class="nav flex-column">'
     . '<a class="nav-link" href="/merchant">لوحة التحكم</a>'
+    . '<a class="nav-link" href="/merchant/orders">الطلبيات</a>'
+    . '<a class="nav-link" href="/merchant/delivery-prices">أسعار التوصيل</a>'
     . '<a class="nav-link" href="/merchant/settings">الإعدادات</a>'
     . '<form method="post" action="/logout" class="mt-4">'
     . csrf_field()
@@ -53,7 +55,7 @@ ob_start();
                         <tbody>
                             <?php foreach ($orders as $order) : ?>
                                 <tr>
-                                    <td>#<?= (int) $order['id'] ?></td>
+                                    <td><?= htmlspecialchars($order['order_code'] ?? ('#' . (int) $order['id'])) ?></td>
                                     <td><?= htmlspecialchars($order['page_title']) ?></td>
                                     <td><?= htmlspecialchars($order['full_name']) ?></td>
                                     <td><?= htmlspecialchars($order['phone']) ?></td>

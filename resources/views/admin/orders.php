@@ -37,7 +37,7 @@ ob_start();
                 <tbody>
                     <?php foreach ($orders as $order) : ?>
                         <tr>
-                            <td>#<?= (int) $order['id'] ?></td>
+                            <td><?= htmlspecialchars($order['order_code'] ?? ('#' . (int) $order['id'])) ?></td>
                             <td><?= htmlspecialchars($order['merchant_name']) ?></td>
                             <td><?= htmlspecialchars($order['page_title']) ?></td>
                             <td><?= htmlspecialchars($order['full_name']) ?></td>

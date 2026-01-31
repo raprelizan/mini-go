@@ -27,6 +27,54 @@ class MerchantController
         ]);
     }
 
+    public function orders(): void
+    {
+        Auth::requireRole('merchant');
+        $merchantId = (int) Auth::user()['merchant_id'];
+        $orders = Order::allForMerchant($merchantId);
+
+        view('merchant/orders', ['orders' => $orders]);
+    }
+
+    public function deliveryPrices(): void
+    {
+        Auth::requireRole('merchant');
+        $merchantId = (int) Auth::user()['merchant_id'];
+        $stmt = Database::connection()->prepare('SELECT delivery_prices_json, order_prefix FROM merchants WHERE id = :id');
+        $stmt->execute(['id' => $merchantId]);
+        $merchant = $stmt->fetch();
+
+        $defaultPrices = $this->defaultDeliveryPrices();
+        $deliveryPrices = $merchant['delivery_prices_json'] ?: json_encode($defaultPrices, JSON_UNESCAPED_UNICODE);
+
+        view('merchant/delivery-prices', [
+            'deliveryPrices' => $deliveryPrices,
+            'orderPrefix' => $merchant['order_prefix'] ?? 'GFM',
+        ]);
+    }
+
+    public function updateDeliveryPrices(): void
+    {
+        Auth::requireRole('merchant');
+        $merchantId = (int) Auth::user()['merchant_id'];
+        $deliveryPrices = trim($_POST['delivery_prices_json'] ?? '');
+        $orderPrefix = trim($_POST['order_prefix'] ?? 'GFM');
+
+        if ($deliveryPrices === '') {
+            $deliveryPrices = json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE);
+        }
+
+        $stmt = Database::connection()->prepare('UPDATE merchants SET delivery_prices_json = :delivery_prices_json, order_prefix = :order_prefix WHERE id = :id');
+        $stmt->execute([
+            'delivery_prices_json' => $deliveryPrices,
+            'order_prefix' => $orderPrefix,
+            'id' => $merchantId,
+        ]);
+
+        $_SESSION['flash_success'] = 'تم تحديث أسعار التوصيل.';
+        header('Location: /merchant/delivery-prices');
+    }
+
     public function editPage(): void
     {
         Auth::requireRole('merchant');
@@ -82,6 +130,30 @@ class MerchantController
             }
         }
 
+        if (!empty($_FILES['gallery_files']['name'][0])) {
+            $uploadDir = __DIR__ . '/../../public/uploads/merchant_' . $merchantId;
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $galleryUrls = array_filter(array_map('trim', explode(',', $content['gallery'] ?? '')));
+            foreach ($_FILES['gallery_files']['name'] as $index => $name) {
+                if ($_FILES['gallery_files']['error'][$index] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+                $tmpName = $_FILES['gallery_files']['tmp_name'][$index];
+                $extension = pathinfo($name, PATHINFO_EXTENSION);
+                $safeName = uniqid('img_', true) . '.' . $extension;
+                $destination = $uploadDir . '/' . $safeName;
+                if (move_uploaded_file($tmpName, $destination)) {
+                    $galleryUrls[] = '/uploads/merchant_' . $merchantId . '/' . $safeName;
+                }
+            }
+            if ($galleryUrls) {
+                $content['gallery'] = implode(',', $galleryUrls);
+            }
+        }
+
         $isActive = isset($_POST['is_active']) ? 1 : 0;
 
         $stmt = Database::connection()->prepare('UPDATE pages SET content_json = :content_json, is_active = :is_active, updated_at = NOW() WHERE id = :id');
@@ -91,7 +163,7 @@ class MerchantController
             'id' => $pageId,
         ]);
 
-        $_SESSION['flash_success'] = 'Page updated successfully.';
+        $_SESSION['flash_success'] = 'تم تحديث الصفحة بنجاح.';
         header('Location: /merchant');
     }
 
@@ -115,6 +187,7 @@ class MerchantController
         $whatsapp = trim($_POST['whatsapp_number'] ?? '');
         $telegram = trim($_POST['telegram_chat_id'] ?? '');
         $template = trim($_POST['order_message_template'] ?? '');
+        $orderPrefix = trim($_POST['order_prefix'] ?? '');
         $profileName = trim($_POST['profile_name'] ?? '');
         $profileBio = trim($_POST['profile_bio'] ?? '');
         $profileAbout = trim($_POST['profile_about'] ?? '');
@@ -128,11 +201,12 @@ class MerchantController
         $tiktokUrl = trim($_POST['tiktok_url'] ?? '');
         $websiteUrl = trim($_POST['website_url'] ?? '');
 
-        $stmt = Database::connection()->prepare('UPDATE merchants SET whatsapp_number = :whatsapp, telegram_chat_id = :telegram, order_message_template = :template, profile_name = :profile_name, profile_bio = :profile_bio, profile_about = :profile_about, profile_phone = :profile_phone, profile_email = :profile_email, profile_address = :profile_address, logo_url = :logo_url, cover_url = :cover_url, instagram_url = :instagram_url, facebook_url = :facebook_url, tiktok_url = :tiktok_url, website_url = :website_url WHERE id = :id');
+        $stmt = Database::connection()->prepare('UPDATE merchants SET whatsapp_number = :whatsapp, telegram_chat_id = :telegram, order_message_template = :template, order_prefix = :order_prefix, profile_name = :profile_name, profile_bio = :profile_bio, profile_about = :profile_about, profile_phone = :profile_phone, profile_email = :profile_email, profile_address = :profile_address, logo_url = :logo_url, cover_url = :cover_url, instagram_url = :instagram_url, facebook_url = :facebook_url, tiktok_url = :tiktok_url, website_url = :website_url WHERE id = :id');
         $stmt->execute([
             'whatsapp' => $whatsapp,
             'telegram' => $telegram,
             'template' => $template,
+            'order_prefix' => $orderPrefix,
             'profile_name' => $profileName,
             'profile_bio' => $profileBio,
             'profile_about' => $profileAbout,
@@ -150,5 +224,69 @@ class MerchantController
 
         $_SESSION['flash_success'] = 'تم تحديث الإعدادات بنجاح.';
         header('Location: /merchant/settings');
+    }
+
+    private function defaultDeliveryPrices(): array
+    {
+        return [
+            'أدرار' => 500,
+            'الشلف' => 500,
+            'الأغواط' => 500,
+            'أم البواقي' => 500,
+            'باتنة' => 500,
+            'بجاية' => 500,
+            'بسكرة' => 500,
+            'بشار' => 500,
+            'البليدة' => 500,
+            'البويرة' => 500,
+            'تمنراست' => 500,
+            'تبسة' => 500,
+            'تلمسان' => 500,
+            'تيارت' => 500,
+            'تيزي وزو' => 500,
+            'الجزائر' => 500,
+            'الجلفة' => 500,
+            'جيجل' => 500,
+            'سطيف' => 500,
+            'سعيدة' => 500,
+            'سكيكدة' => 500,
+            'سيدي بلعباس' => 500,
+            'عنابة' => 500,
+            'قالمة' => 500,
+            'قسنطينة' => 500,
+            'المدية' => 500,
+            'مستغانم' => 500,
+            'المسيلة' => 500,
+            'معسكر' => 500,
+            'ورقلة' => 500,
+            'وهران' => 500,
+            'البيض' => 500,
+            'إليزي' => 500,
+            'برج بوعريريج' => 500,
+            'بومرداس' => 500,
+            'الطارف' => 500,
+            'تندوف' => 500,
+            'تيسمسيلت' => 500,
+            'الوادي' => 500,
+            'خنشلة' => 500,
+            'سوق أهراس' => 500,
+            'تيبازة' => 500,
+            'ميلة' => 500,
+            'عين الدفلى' => 500,
+            'النعامة' => 500,
+            'عين تموشنت' => 500,
+            'غرداية' => 500,
+            'غليزان' => 500,
+            'تيميمون' => 500,
+            'برج باجي مختار' => 500,
+            'أولاد جلال' => 500,
+            'بني عباس' => 500,
+            'إن صالح' => 500,
+            'إن قزام' => 500,
+            'توقرت' => 500,
+            'جانت' => 500,
+            'المغير' => 500,
+            'المنيعة' => 500,
+        ];
     }
 }
