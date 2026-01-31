@@ -5,6 +5,7 @@ $subtitle = $merchant['name'] . ' - عرض خاص';
 $gallery = array_filter(array_map('trim', explode(',', $pageData['gallery'] ?? '')));
 $deliveryPrice = (int) ($pageData['delivery_price'] ?? 500);
 $productPrice = (int) preg_replace('/[^0-9]/', '', $page['price']);
+$deliveryPricesJson = json_encode($deliveryPrices ?? [], JSON_UNESCAPED_UNICODE);
 $wilayas = [
     'أدرار', 'الشلف', 'الأغواط', 'أم البواقي', 'باتنة', 'بجاية', 'بسكرة', 'بشار', 'البليدة', 'البويرة',
     'تمنراست', 'تبسة', 'تلمسان', 'تيارت', 'تيزي وزو', 'الجزائر', 'الجلفة', 'جيجل', 'سطيف', 'سعيدة',
@@ -43,7 +44,7 @@ ob_start();
                 </div>
                 <div class="order-card">
                     <h4>اطلب الآن</h4>
-                    <form method="post" action="/p/<?= htmlspecialchars($page['slug']) ?>/order" class="vstack gap-3" data-delivery="<?= $deliveryPrice ?>" data-product="<?= $productPrice ?>">
+                    <form method="post" action="/p/<?= htmlspecialchars($page['slug']) ?>/order" class="vstack gap-3" data-delivery="<?= $deliveryPrice ?>" data-product="<?= $productPrice ?>" data-delivery-map='<?= htmlspecialchars($deliveryPricesJson) ?>'>
                         <?= csrf_field() ?>
                         <input type="text" name="full_name" class="form-control" placeholder="الاسم الكامل" required>
                         <input type="text" name="phone" class="form-control" placeholder="رقم الهاتف" required>
@@ -75,11 +76,20 @@ ob_start();
 <script>
     const orderForm = document.querySelector('.order-card form');
     if (orderForm) {
-        const deliveryPrice = Number(orderForm.dataset.delivery || 500);
+        const baseDeliveryPrice = Number(orderForm.dataset.delivery || 500);
         const productPrice = Number(orderForm.dataset.product || 0);
+        const deliveryMap = JSON.parse(orderForm.dataset.deliveryMap || '{}');
+        const selectWilaya = orderForm.querySelector('select[name=\"wilaya\"]');
         const deliveryEl = orderForm.querySelector('.delivery-price');
         const totalEl = orderForm.querySelector('.total-price');
+        const resolveDelivery = () => {
+            if (!selectWilaya) {
+                return baseDeliveryPrice;
+            }
+            return Number(deliveryMap[selectWilaya.value]) || baseDeliveryPrice;
+        };
         const updateTotals = () => {
+            const deliveryPrice = resolveDelivery();
             const total = productPrice + deliveryPrice;
             if (deliveryEl) {
                 deliveryEl.textContent = `${deliveryPrice} دج`;
@@ -88,6 +98,9 @@ ob_start();
                 totalEl.textContent = `${total} دج`;
             }
         };
+        if (selectWilaya) {
+            selectWilaya.addEventListener('change', updateTotals);
+        }
         updateTotals();
     }
 </script>

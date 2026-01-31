@@ -189,6 +189,7 @@ class SuperAdminController
             ['field_key' => 'features', 'label' => 'مزايا المنتج', 'field_type' => 'textarea', 'is_editable_by_merchant' => 1],
             ['field_key' => 'gallery', 'label' => 'معرض الصور (روابط مفصولة بفواصل)', 'field_type' => 'textarea', 'is_editable_by_merchant' => 1],
             ['field_key' => 'delivery_price', 'label' => 'سعر التوصيل (دج)', 'field_type' => 'text', 'is_editable_by_merchant' => 1],
+            ['field_key' => 'delivery_prices', 'label' => 'أسعار التوصيل لكل ولاية (JSON)', 'field_type' => 'textarea', 'is_editable_by_merchant' => 1],
         ];
 
         $stmt = Database::connection()->prepare('INSERT INTO template_fields (template_id, field_key, label, field_type, is_editable_by_merchant, display_order) VALUES (:template_id, :field_key, :label, :field_type, :editable, :display_order)');
@@ -246,12 +247,16 @@ class SuperAdminController
         foreach ($pages as &$page) {
             $content = json_decode($page['content_json'] ?? '{}', true) ?? [];
             $page['delivery_price'] = $content['delivery_price'] ?? '500';
+            $page['delivery_prices'] = $content['delivery_prices'] ?? '';
         }
+
+        $defaultDeliveryPrices = $this->defaultDeliveryPrices();
 
         view('admin/pages', [
             'merchants' => $merchants,
             'templates' => $templates,
             'pages' => $pages,
+            'defaultDeliveryPrices' => $defaultDeliveryPrices,
         ]);
     }
 
@@ -265,6 +270,7 @@ class SuperAdminController
         $price = trim($_POST['price'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $deliveryPrice = trim($_POST['delivery_price'] ?? '500');
+        $deliveryPrices = trim($_POST['delivery_prices'] ?? '');
 
         if ($merchantId === 0 || $templateId === 0 || $title === '' || $slug === '') {
             $_SESSION['flash_error'] = 'يرجى ملء جميع بيانات الصفحة.';
@@ -278,6 +284,7 @@ class SuperAdminController
             'features' => "- توصيل سريع\n- الدفع عند الاستلام\n- منتج موثوق",
             'gallery' => '',
             'delivery_price' => $deliveryPrice,
+            'delivery_prices' => $deliveryPrices !== '' ? $deliveryPrices : json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE),
         ];
 
         $stmt = Database::connection()->prepare('INSERT INTO pages (merchant_id, template_id, title, slug, price, description, content_json, is_active, created_at) VALUES (:merchant_id, :template_id, :title, :slug, :price, :description, :content_json, 1, NOW())');
@@ -304,6 +311,7 @@ class SuperAdminController
         $price = trim($_POST['price'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $deliveryPrice = trim($_POST['delivery_price'] ?? '500');
+        $deliveryPrices = trim($_POST['delivery_prices'] ?? '');
         $isActive = isset($_POST['is_active']) ? 1 : 0;
 
         $pageStmt = Database::connection()->prepare('SELECT content_json FROM pages WHERE id = :id');
@@ -311,6 +319,9 @@ class SuperAdminController
         $page = $pageStmt->fetch();
         $content = json_decode($page['content_json'] ?? '{}', true) ?? [];
         $content['delivery_price'] = $deliveryPrice;
+        if ($deliveryPrices !== '') {
+            $content['delivery_prices'] = $deliveryPrices;
+        }
 
         $stmt = Database::connection()->prepare('UPDATE pages SET title = :title, slug = :slug, price = :price, description = :description, is_active = :is_active, updated_at = NOW() WHERE id = :id');
         $stmt->execute([
@@ -482,5 +493,69 @@ class SuperAdminController
 
         $_SESSION['flash_success'] = 'تم تحديث بيانات الحساب.';
         header('Location: /admin/profile');
+    }
+
+    private function defaultDeliveryPrices(): array
+    {
+        return [
+            'أدرار' => 500,
+            'الشلف' => 500,
+            'الأغواط' => 500,
+            'أم البواقي' => 500,
+            'باتنة' => 500,
+            'بجاية' => 500,
+            'بسكرة' => 500,
+            'بشار' => 500,
+            'البليدة' => 500,
+            'البويرة' => 500,
+            'تمنراست' => 500,
+            'تبسة' => 500,
+            'تلمسان' => 500,
+            'تيارت' => 500,
+            'تيزي وزو' => 500,
+            'الجزائر' => 500,
+            'الجلفة' => 500,
+            'جيجل' => 500,
+            'سطيف' => 500,
+            'سعيدة' => 500,
+            'سكيكدة' => 500,
+            'سيدي بلعباس' => 500,
+            'عنابة' => 500,
+            'قالمة' => 500,
+            'قسنطينة' => 500,
+            'المدية' => 500,
+            'مستغانم' => 500,
+            'المسيلة' => 500,
+            'معسكر' => 500,
+            'ورقلة' => 500,
+            'وهران' => 500,
+            'البيض' => 500,
+            'إليزي' => 500,
+            'برج بوعريريج' => 500,
+            'بومرداس' => 500,
+            'الطارف' => 500,
+            'تندوف' => 500,
+            'تيسمسيلت' => 500,
+            'الوادي' => 500,
+            'خنشلة' => 500,
+            'سوق أهراس' => 500,
+            'تيبازة' => 500,
+            'ميلة' => 500,
+            'عين الدفلى' => 500,
+            'النعامة' => 500,
+            'عين تموشنت' => 500,
+            'غرداية' => 500,
+            'غليزان' => 500,
+            'تيميمون' => 500,
+            'برج باجي مختار' => 500,
+            'أولاد جلال' => 500,
+            'بني عباس' => 500,
+            'إن صالح' => 500,
+            'إن قزام' => 500,
+            'توقرت' => 500,
+            'جانت' => 500,
+            'المغير' => 500,
+            'المنيعة' => 500,
+        ];
     }
 }

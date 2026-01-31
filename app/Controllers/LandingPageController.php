@@ -28,6 +28,7 @@ class LandingPageController
         $template = Template::find((int) $page['template_id']);
         $fields = Template::fields((int) $page['template_id']);
         $pageData = json_decode($page['content_json'], true) ?? [];
+        $deliveryPrices = $this->deliveryPriceMap($pageData);
 
         $viewKey = $template['view_key'] ?? 'default';
         $viewName = $viewKey === 'default' ? 'landing/page' : 'landing/templates/' . $viewKey;
@@ -42,6 +43,7 @@ class LandingPageController
             'template' => $template,
             'fields' => $fields,
             'pageData' => $pageData,
+            'deliveryPrices' => $deliveryPrices,
         ]);
     }
 
@@ -62,8 +64,10 @@ class LandingPageController
         }
 
         $pageData = json_decode($page['content_json'], true) ?? [];
-        $deliveryPrice = (int) ($pageData['delivery_price'] ?? 500);
+        $deliveryPrices = $this->deliveryPriceMap($pageData);
         $productPrice = (int) preg_replace('/[^0-9]/', '', $page['price']);
+        $wilaya = trim($_POST['wilaya'] ?? '');
+        $deliveryPrice = (int) ($deliveryPrices[$wilaya] ?? 500);
         $totalPrice = $productPrice + $deliveryPrice;
 
         $data = [
@@ -72,7 +76,7 @@ class LandingPageController
             'full_name' => trim($_POST['full_name'] ?? ''),
             'phone' => trim($_POST['phone'] ?? ''),
             'address' => trim($_POST['address'] ?? ''),
-            'wilaya' => trim($_POST['wilaya'] ?? ''),
+            'wilaya' => $wilaya,
             'delivery_price' => $deliveryPrice,
             'total_price' => $totalPrice,
             'status' => 'new',
@@ -158,5 +162,41 @@ class LandingPageController
         ]);
         curl_exec($ch);
         curl_close($ch);
+    }
+
+    private function deliveryPriceMap(array $pageData): array
+    {
+        $default = 500;
+        $wilayas = [
+            'أدرار', 'الشلف', 'الأغواط', 'أم البواقي', 'باتنة', 'بجاية', 'بسكرة', 'بشار', 'البليدة', 'البويرة',
+            'تمنراست', 'تبسة', 'تلمسان', 'تيارت', 'تيزي وزو', 'الجزائر', 'الجلفة', 'جيجل', 'سطيف', 'سعيدة',
+            'سكيكدة', 'سيدي بلعباس', 'عنابة', 'قالمة', 'قسنطينة', 'المدية', 'مستغانم', 'المسيلة', 'معسكر', 'ورقلة',
+            'وهران', 'البيض', 'إليزي', 'برج بوعريريج', 'بومرداس', 'الطارف', 'تندوف', 'تيسمسيلت', 'الوادي', 'خنشلة',
+            'سوق أهراس', 'تيبازة', 'ميلة', 'عين الدفلى', 'النعامة', 'عين تموشنت', 'غرداية', 'غليزان', 'تيميمون', 'برج باجي مختار',
+            'أولاد جلال', 'بني عباس', 'إن صالح', 'إن قزام', 'توقرت', 'جانت', 'المغير', 'المنيعة'
+        ];
+
+        $prices = [];
+        foreach ($wilayas as $wilaya) {
+            $prices[$wilaya] = $default;
+        }
+
+        $custom = $pageData['delivery_prices'] ?? null;
+        if (is_string($custom)) {
+            $decoded = json_decode($custom, true);
+            if (is_array($decoded)) {
+                $custom = $decoded;
+            }
+        }
+
+        if (is_array($custom)) {
+            foreach ($custom as $wilaya => $price) {
+                if (isset($prices[$wilaya]) && is_numeric($price)) {
+                    $prices[$wilaya] = (int) $price;
+                }
+            }
+        }
+
+        return $prices;
     }
 }

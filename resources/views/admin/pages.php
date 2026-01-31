@@ -56,6 +56,11 @@ ob_start();
             <div class="col-12">
                 <input type="text" name="description" class="form-control" placeholder="وصف مختصر">
             </div>
+            <div class="col-12">
+                <label class="form-label text-secondary">أسعار التوصيل لكل ولاية (JSON)</label>
+                <textarea name="delivery_prices" class="form-control" rows="4"><?= htmlspecialchars(json_encode($defaultDeliveryPrices, JSON_UNESCAPED_UNICODE)) ?></textarea>
+                <div class="form-text text-secondary">أدخل JSON مثل {"الجزائر":500,"وهران":700}</div>
+            </div>
         </form>
     </div>
 </div>
@@ -93,6 +98,7 @@ ob_start();
                                 <td>
                                     <input class="form-control form-control-sm" name="price" value="<?= htmlspecialchars($page['price']) ?>">
                                     <input class="form-control form-control-sm mt-2" name="delivery_price" value="<?= htmlspecialchars((string) ($page['delivery_price'] ?? '500')) ?>">
+                                    <textarea class="form-control form-control-sm mt-2" name="delivery_prices" rows="3"><?= htmlspecialchars($page['delivery_prices'] ?? '') ?></textarea>
                                 </td>
                                 <td>
                                     <div class="form-check form-switch">
