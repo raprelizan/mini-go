@@ -23,6 +23,7 @@ $router->post('/admin/merchants/update', [new SuperAdminController(), 'updateMer
 $router->post('/admin/merchants/delete', [new SuperAdminController(), 'deleteMerchant']);
 
 $router->get('/admin/templates', [new SuperAdminController(), 'templatesIndex']);
+$router->get('/admin/templates/preview', [new SuperAdminController(), 'previewTemplate']);
 $router->post('/admin/templates', [new SuperAdminController(), 'createTemplate']);
 $router->post('/admin/templates/update', [new SuperAdminController(), 'updateTemplate']);
 $router->post('/admin/templates/delete', [new SuperAdminController(), 'deleteTemplate']);

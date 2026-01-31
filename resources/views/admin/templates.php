@@ -48,6 +48,7 @@ ob_start();
                     <input type="text" class="form-control" name="view_key" value="<?= htmlspecialchars($template['view_key'] ?? 'default') ?>">
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-light" type="submit">حفظ</button>
+                        <a class="btn btn-sm btn-outline-info" href="/admin/templates/preview?template_id=<?= (int) $template['id'] ?>" target="_blank">معاينة</a>
                         <button class="btn btn-sm btn-outline-danger" type="submit" formaction="/admin/templates/delete" onclick="return confirm('هل تريد حذف القالب؟');">حذف القالب</button>
                     </div>
                 </form>

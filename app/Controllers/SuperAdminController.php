@@ -108,6 +108,60 @@ class SuperAdminController
         view('admin/templates', ['templates' => $templates]);
     }
 
+    public function previewTemplate(): void
+    {
+        Auth::requireRole('super_admin');
+        $templateId = (int) ($_GET['template_id'] ?? 0);
+        $stmt = Database::connection()->prepare('SELECT * FROM templates WHERE id = :id');
+        $stmt->execute(['id' => $templateId]);
+        $template = $stmt->fetch();
+
+        if (!$template) {
+            http_response_code(404);
+            echo 'Template not found.';
+            return;
+        }
+
+        $fields = Database::connection()->prepare('SELECT * FROM template_fields WHERE template_id = :template_id');
+        $fields->execute(['template_id' => $templateId]);
+        $fieldRows = $fields->fetchAll();
+
+        $pageData = [];
+        foreach ($fieldRows as $field) {
+            $pageData[$field['field_key']] = match ($field['field_key']) {
+                'headline' => 'عرض حصري لتجربة القالب',
+                'subheadline' => 'هذا مثال توضيحي لواجهة صفحة الهبوط قبل اعتمادها.',
+                'features' => "- تصميم متجاوب\n- نموذج طلب سريع\n- دعم واتساب وتيليجرام",
+                'gallery' => 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80,https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+                'delivery_price' => '500',
+                default => '...',
+            };
+        }
+
+        $merchant = ['name' => 'اسم التاجر'];
+        $page = [
+            'title' => 'منتج تجريبي',
+            'description' => 'وصف مختصر يظهر في القالب كنموذج.',
+            'price' => '4500',
+            'slug' => 'preview',
+        ];
+
+        $viewKey = $template['view_key'] ?? 'default';
+        $viewName = $viewKey === 'default' ? 'landing/page' : 'landing/templates/' . $viewKey;
+        $viewFile = __DIR__ . '/../../resources/views/' . $viewName . '.php';
+        if (!file_exists($viewFile)) {
+            $viewName = 'landing/page';
+        }
+
+        view($viewName, [
+            'merchant' => $merchant,
+            'page' => $page,
+            'template' => $template,
+            'fields' => $fieldRows,
+            'pageData' => $pageData,
+        ]);
+    }
+
     public function createTemplate(): void
     {
         Auth::requireRole('super_admin');
