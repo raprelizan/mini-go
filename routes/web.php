@@ -2,6 +2,7 @@
 
 use App\Controllers\LandingPageController;
 use App\Controllers\MerchantController;
+use App\Controllers\MerchantRegistrationController;
 use App\Controllers\SuperAdminController;
 use App\Controllers\AuthController;
 use App\Controllers\SetupController;
@@ -15,9 +16,15 @@ $router->post('/login', [new AuthController(), 'login']);
 $router->post('/logout', [new AuthController(), 'logout']);
 $router->get('/setup', [new SetupController(), 'show']);
 $router->post('/setup', [new SetupController(), 'store']);
+$router->get('/merchant/register', [new MerchantRegistrationController(), 'show']);
+$router->post('/merchant/register', [new MerchantRegistrationController(), 'store']);
+$router->get('/merchant/register/thanks', [new MerchantRegistrationController(), 'thanks']);
 
 $router->get('/admin', [new SuperAdminController(), 'dashboard']);
 $router->get('/admin/merchants', [new SuperAdminController(), 'merchantsIndex']);
+$router->get('/admin/merchant-registrations', [new SuperAdminController(), 'merchantRegistrationsIndex']);
+$router->post('/admin/merchant-registrations/approve', [new SuperAdminController(), 'approveMerchantRegistration']);
+$router->post('/admin/merchant-registrations/reject', [new SuperAdminController(), 'rejectMerchantRegistration']);
 $router->get('/admin/merchants/profile', [new SuperAdminController(), 'merchantProfile']);
 $router->get('/admin/merchants/delivery-prices', [new SuperAdminController(), 'merchantDeliveryPrices']);
 $router->post('/admin/merchants', [new SuperAdminController(), 'createMerchant']);
@@ -55,6 +62,8 @@ $router->post('/merchant/pages/update', [new MerchantController(), 'updatePage']
 $router->get('/merchant/settings', [new MerchantController(), 'settings']);
 $router->post('/merchant/settings', [new MerchantController(), 'updateSettings']);
 $router->get('/merchant/orders', [new MerchantController(), 'orders']);
+$router->get('/merchant/orders/view', [new MerchantController(), 'orderSheet']);
+$router->post('/merchant/orders/update', [new MerchantController(), 'updateOrderStatus']);
 $router->get('/merchant/delivery-prices', [new MerchantController(), 'deliveryPrices']);
 $router->post('/merchant/delivery-prices', [new MerchantController(), 'updateDeliveryPrices']);
 

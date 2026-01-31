@@ -3,6 +3,7 @@ $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<nav class="nav flex-column">'
     . '<a class="nav-link" href="/admin">نظرة عامة</a>'
     . '<a class="nav-link" href="/admin/merchants">التجار</a>'
+    . '<a class="nav-link" href="/admin/merchant-registrations">طلبات التجار</a>'
     . '<a class="nav-link" href="/admin/pages">الصفحات</a>'
     . '<a class="nav-link" href="/admin/templates">القوالب</a>'
     . '<a class="nav-link" href="/admin/orders">الطلبات</a>'
@@ -31,9 +32,15 @@ ob_start();
                 <input type="text" name="order_prefix" class="form-control" value="<?= htmlspecialchars($merchant['order_prefix'] ?? 'GFM') ?>">
             </div>
             <div>
-                <label class="form-label">أسعار التوصيل (JSON)</label>
-                <textarea name="delivery_prices_json" class="form-control" rows="10"><?= htmlspecialchars($merchant['delivery_prices_json'] ?: json_encode($defaultDeliveryPrices, JSON_UNESCAPED_UNICODE)) ?></textarea>
-                <div class="form-text text-secondary">مثال: {"الجزائر":500,"وهران":700}</div>
+                <label class="form-label">أسعار التوصيل حسب الولاية</label>
+                <div class="row g-3">
+                    <?php foreach ($deliveryPrices as $wilaya => $price) : ?>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary"><?= htmlspecialchars($wilaya) ?></label>
+                            <input type="number" name="delivery_prices[<?= htmlspecialchars($wilaya) ?>]" class="form-control" value="<?= htmlspecialchars((string) $price) ?>" min="0">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
             <button class="btn btn-accent" type="submit">حفظ الأسعار</button>
         </form>

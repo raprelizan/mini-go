@@ -11,29 +11,53 @@ $sidebar = '<div class="brand">لوحة التاجر</div>'
     . '</form>'
     . '</nav>';
 $title = 'الطلبيات الواردة';
-$subtitle = 'عرض شامل لكل الطلبيات مع تفاصيلها.';
+$subtitle = 'قائمة مختصرة للطلبات مع إمكانية عرض التفاصيل وتحديث الحالة.';
 ob_start();
 ?>
-<div class="row g-4">
-    <?php foreach ($orders as $order) : ?>
-        <div class="col-lg-6">
-            <div class="card app-card order-sheet">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0"><?= htmlspecialchars($order['page_title']) ?></h5>
-                        <span class="badge text-bg-primary"><?= htmlspecialchars($order['order_code'] ?? ('#' . $order['id'])) ?></span>
-                    </div>
-                    <div class="sheet-row"><span>الاسم</span><strong><?= htmlspecialchars($order['full_name']) ?></strong></div>
-                    <div class="sheet-row"><span>الهاتف</span><strong><?= htmlspecialchars($order['phone']) ?></strong></div>
-                    <div class="sheet-row"><span>العنوان</span><strong><?= htmlspecialchars($order['address']) ?></strong></div>
-                    <div class="sheet-row"><span>الولاية</span><strong><?= htmlspecialchars($order['wilaya']) ?></strong></div>
-                    <div class="sheet-row"><span>سعر التوصيل</span><strong><?= htmlspecialchars((string) $order['delivery_price']) ?> دج</strong></div>
-                    <div class="sheet-row total"><span>الإجمالي</span><strong><?= htmlspecialchars((string) $order['total_price']) ?> دج</strong></div>
-                    <div class="mt-3 text-secondary">الحالة: <?= htmlspecialchars($order['status']) ?></div>
-                </div>
-            </div>
+<div class="card app-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>الرقم</th>
+                        <th>الصفحة</th>
+                        <th>العميل</th>
+                        <th>الهاتف</th>
+                        <th>الإجمالي</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($orders as $order) : ?>
+                        <tr>
+                            <td><?= htmlspecialchars($order['order_code'] ?? ('#' . $order['id'])) ?></td>
+                            <td><?= htmlspecialchars($order['page_title']) ?></td>
+                            <td><?= htmlspecialchars($order['full_name']) ?></td>
+                            <td><?= htmlspecialchars($order['phone']) ?></td>
+                            <td><?= htmlspecialchars((string) $order['total_price']) ?> دج</td>
+                            <td>
+                                <form method="post" action="/merchant/orders/update" class="d-flex gap-2">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="order_id" value="<?= (int) $order['id'] ?>">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <?php foreach (['new' => 'جديد', 'confirmed' => 'مؤكد', 'shipped' => 'تم الشحن', 'cancelled' => 'ملغي'] as $key => $label) : ?>
+                                            <option value="<?= $key ?>" <?= $order['status'] === $key ? 'selected' : '' ?>><?= $label ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-light" type="submit">تحديث</button>
+                                </form>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-info" href="/merchant/orders/view?order_id=<?= (int) $order['id'] ?>">عرض التفاصيل</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
-    <?php endforeach; ?>
+    </div>
 </div>
 <?php
 $content = ob_get_clean();

@@ -23,9 +23,15 @@ ob_start();
                 <input type="text" name="order_prefix" class="form-control" value="<?= htmlspecialchars($orderPrefix) ?>">
             </div>
             <div>
-                <label class="form-label">أسعار التوصيل (JSON)</label>
-                <textarea name="delivery_prices_json" class="form-control" rows="10"><?= htmlspecialchars($deliveryPrices) ?></textarea>
-                <div class="form-text text-secondary">مثال: {"الجزائر":500,"وهران":700}</div>
+                <label class="form-label">أسعار التوصيل حسب الولاية</label>
+                <div class="row g-3">
+                    <?php foreach ($deliveryPrices as $wilaya => $price) : ?>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary"><?= htmlspecialchars($wilaya) ?></label>
+                            <input type="number" name="delivery_prices[<?= htmlspecialchars($wilaya) ?>]" class="form-control" value="<?= htmlspecialchars((string) $price) ?>" min="0">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
             <button class="btn btn-accent" type="submit">حفظ الأسعار</button>
         </form>

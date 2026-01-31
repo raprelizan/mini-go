@@ -36,6 +36,43 @@ class MerchantController
         view('merchant/orders', ['orders' => $orders]);
     }
 
+    public function orderSheet(): void
+    {
+        Auth::requireRole('merchant');
+        $merchantId = (int) Auth::user()['merchant_id'];
+        $orderId = (int) ($_GET['order_id'] ?? 0);
+
+        $stmt = Database::connection()->prepare('SELECT orders.*, pages.title AS page_title FROM orders INNER JOIN pages ON orders.page_id = pages.id WHERE orders.id = :id AND orders.merchant_id = :merchant_id');
+        $stmt->execute(['id' => $orderId, 'merchant_id' => $merchantId]);
+        $order = $stmt->fetch();
+
+        if (!$order) {
+            http_response_code(404);
+            echo 'Order not found.';
+            return;
+        }
+
+        view('merchant/order-sheet', ['order' => $order]);
+    }
+
+    public function updateOrderStatus(): void
+    {
+        Auth::requireRole('merchant');
+        $merchantId = (int) Auth::user()['merchant_id'];
+        $orderId = (int) ($_POST['order_id'] ?? 0);
+        $status = trim($_POST['status'] ?? '');
+
+        $stmt = Database::connection()->prepare('UPDATE orders SET status = :status WHERE id = :id AND merchant_id = :merchant_id');
+        $stmt->execute([
+            'status' => $status,
+            'id' => $orderId,
+            'merchant_id' => $merchantId,
+        ]);
+
+        $_SESSION['flash_success'] = 'تم تحديث حالة الطلب.';
+        header('Location: /merchant/orders');
+    }
+
     public function deliveryPrices(): void
     {
         Auth::requireRole('merchant');
@@ -45,7 +82,13 @@ class MerchantController
         $merchant = $stmt->fetch();
 
         $defaultPrices = $this->defaultDeliveryPrices();
-        $deliveryPrices = $merchant['delivery_prices_json'] ?: json_encode($defaultPrices, JSON_UNESCAPED_UNICODE);
+        $deliveryPrices = $defaultPrices;
+        if (!empty($merchant['delivery_prices_json'])) {
+            $decoded = json_decode($merchant['delivery_prices_json'], true);
+            if (is_array($decoded)) {
+                $deliveryPrices = array_merge($deliveryPrices, $decoded);
+            }
+        }
 
         view('merchant/delivery-prices', [
             'deliveryPrices' => $deliveryPrices,
@@ -57,16 +100,20 @@ class MerchantController
     {
         Auth::requireRole('merchant');
         $merchantId = (int) Auth::user()['merchant_id'];
-        $deliveryPrices = trim($_POST['delivery_prices_json'] ?? '');
         $orderPrefix = trim($_POST['order_prefix'] ?? 'GFM');
-
-        if ($deliveryPrices === '') {
-            $deliveryPrices = json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE);
+        $deliveryPrices = $_POST['delivery_prices'] ?? [];
+        if (!is_array($deliveryPrices)) {
+            $deliveryPrices = [];
+        }
+        $sanitized = [];
+        foreach ($this->defaultDeliveryPrices() as $wilaya => $defaultPrice) {
+            $price = $deliveryPrices[$wilaya] ?? $defaultPrice;
+            $sanitized[$wilaya] = is_numeric($price) ? (int) $price : $defaultPrice;
         }
 
         $stmt = Database::connection()->prepare('UPDATE merchants SET delivery_prices_json = :delivery_prices_json, order_prefix = :order_prefix WHERE id = :id');
         $stmt->execute([
-            'delivery_prices_json' => $deliveryPrices,
+            'delivery_prices_json' => json_encode($sanitized, JSON_UNESCAPED_UNICODE),
             'order_prefix' => $orderPrefix,
             'id' => $merchantId,
         ]);
@@ -130,13 +177,33 @@ class MerchantController
             }
         }
 
+        $galleryUrls = [];
+        $existingGallery = $_POST['gallery_existing'] ?? [];
+        $removedGallery = $_POST['gallery_remove'] ?? [];
+        if (is_array($existingGallery)) {
+            foreach ($existingGallery as $url) {
+                $url = trim((string) $url);
+                if ($url === '') {
+                    continue;
+                }
+                if (is_array($removedGallery) && in_array($url, $removedGallery, true)) {
+                    continue;
+                }
+                $galleryUrls[] = $url;
+            }
+        }
+
+        if (!empty($content['gallery'])) {
+            $typedUrls = array_filter(array_map('trim', explode(',', (string) $content['gallery'])));
+            $galleryUrls = array_merge($galleryUrls, $typedUrls);
+        }
+
         if (!empty($_FILES['gallery_files']['name'][0])) {
             $uploadDir = __DIR__ . '/../../public/uploads/merchant_' . $merchantId;
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
 
-            $galleryUrls = array_filter(array_map('trim', explode(',', $content['gallery'] ?? '')));
             foreach ($_FILES['gallery_files']['name'] as $index => $name) {
                 if ($_FILES['gallery_files']['error'][$index] !== UPLOAD_ERR_OK) {
                     continue;
@@ -149,9 +216,11 @@ class MerchantController
                     $galleryUrls[] = '/uploads/merchant_' . $merchantId . '/' . $safeName;
                 }
             }
-            if ($galleryUrls) {
-                $content['gallery'] = implode(',', $galleryUrls);
-            }
+        }
+        if ($galleryUrls) {
+            $content['gallery'] = implode(',', array_values(array_unique($galleryUrls)));
+        } elseif (array_key_exists('gallery', $content)) {
+            $content['gallery'] = '';
         }
 
         $isActive = isset($_POST['is_active']) ? 1 : 0;

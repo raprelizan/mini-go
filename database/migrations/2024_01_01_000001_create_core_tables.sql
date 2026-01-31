@@ -36,6 +36,21 @@ CREATE TABLE merchants (
     updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE merchant_registrations (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    merchant_name VARCHAR(150) NOT NULL,
+    trade_name VARCHAR(150) NOT NULL,
+    business_type VARCHAR(150) NOT NULL,
+    phone VARCHAR(60) NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    terms_accepted TINYINT(1) NOT NULL DEFAULT 0,
+    status VARCHAR(40) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_merchant_registrations_status (status),
+    UNIQUE KEY uniq_merchant_registrations_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE templates (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(120) NOT NULL,

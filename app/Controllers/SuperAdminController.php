@@ -30,6 +30,91 @@ class SuperAdminController
         view('admin/merchants', ['merchants' => $merchants]);
     }
 
+    public function merchantRegistrationsIndex(): void
+    {
+        Auth::requireRole('super_admin');
+        $registrations = Database::connection()->query('SELECT * FROM merchant_registrations ORDER BY created_at DESC')->fetchAll();
+        view('admin/merchant-registrations', ['registrations' => $registrations]);
+    }
+
+    public function approveMerchantRegistration(): void
+    {
+        Auth::requireRole('super_admin');
+        $registrationId = (int) ($_POST['registration_id'] ?? 0);
+        $subdomain = trim($_POST['subdomain'] ?? '');
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        if ($subdomain === '') {
+            $_SESSION['flash_error'] = 'يرجى تحديد كود التاجر.';
+            header('Location: /admin/merchant-registrations');
+            return;
+        }
+
+        $stmt = Database::connection()->prepare('SELECT * FROM merchant_registrations WHERE id = :id AND status = "pending"');
+        $stmt->execute(['id' => $registrationId]);
+        $registration = $stmt->fetch();
+
+        if (!$registration) {
+            $_SESSION['flash_error'] = 'طلب التسجيل غير موجود.';
+            header('Location: /admin/merchant-registrations');
+            return;
+        }
+
+        $existingMerchant = Database::connection()->prepare('SELECT id FROM merchants WHERE subdomain = :subdomain');
+        $existingMerchant->execute(['subdomain' => $subdomain]);
+        if ($existingMerchant->fetch()) {
+            $_SESSION['flash_error'] = 'كود التاجر مستخدم بالفعل.';
+            header('Location: /admin/merchant-registrations');
+            return;
+        }
+
+        $existingUser = Database::connection()->prepare('SELECT id FROM users WHERE email = :email');
+        $existingUser->execute(['email' => $registration['email']]);
+        if ($existingUser->fetch()) {
+            $_SESSION['flash_error'] = 'هذا البريد الإلكتروني مستخدم بالفعل.';
+            header('Location: /admin/merchant-registrations');
+            return;
+        }
+
+        $stmt = Database::connection()->prepare('INSERT INTO merchants (name, subdomain, order_prefix, delivery_prices_json, whatsapp_number, telegram_chat_id, order_message_template, is_active, created_at) VALUES (:name, :subdomain, :order_prefix, :delivery_prices_json, :whatsapp, :telegram, :template, :is_active, NOW())');
+        $stmt->execute([
+            'name' => $registration['trade_name'],
+            'subdomain' => $subdomain,
+            'order_prefix' => 'GFM',
+            'delivery_prices_json' => json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE),
+            'whatsapp' => $registration['phone'],
+            'telegram' => '',
+            'template' => "طلب جديد للصفحة {{page}}\nالاسم: {{name}}\nالهاتف: {{phone}}\nالعنوان: {{address}}\nالولاية: {{wilaya}}\nسعر التوصيل: {{delivery}}\nالإجمالي: {{total}}",
+            'is_active' => $isActive,
+        ]);
+        $merchantId = (int) Database::connection()->lastInsertId();
+
+        $stmt = Database::connection()->prepare('INSERT INTO users (name, email, password_hash, role, merchant_id, created_at) VALUES (:name, :email, :password_hash, :role, :merchant_id, NOW())');
+        $stmt->execute([
+            'name' => $registration['merchant_name'],
+            'email' => $registration['email'],
+            'password_hash' => $registration['password_hash'],
+            'role' => 'merchant',
+            'merchant_id' => $merchantId,
+        ]);
+
+        $update = Database::connection()->prepare('UPDATE merchant_registrations SET status = "approved" WHERE id = :id');
+        $update->execute(['id' => $registrationId]);
+
+        $_SESSION['flash_success'] = 'تم اعتماد التاجر وإنشاء الحساب.';
+        header('Location: /admin/merchant-registrations');
+    }
+
+    public function rejectMerchantRegistration(): void
+    {
+        Auth::requireRole('super_admin');
+        $registrationId = (int) ($_POST['registration_id'] ?? 0);
+        $stmt = Database::connection()->prepare('UPDATE merchant_registrations SET status = "rejected" WHERE id = :id');
+        $stmt->execute(['id' => $registrationId]);
+        $_SESSION['flash_success'] = 'تم رفض طلب التسجيل.';
+        header('Location: /admin/merchant-registrations');
+    }
+
     public function merchantProfile(): void
     {
         Auth::requireRole('super_admin');
@@ -62,9 +147,16 @@ class SuperAdminController
         }
 
         $defaultDeliveryPrices = $this->defaultDeliveryPrices();
+        $deliveryPrices = $defaultDeliveryPrices;
+        if (!empty($merchant['delivery_prices_json'])) {
+            $decoded = json_decode($merchant['delivery_prices_json'], true);
+            if (is_array($decoded)) {
+                $deliveryPrices = array_merge($deliveryPrices, $decoded);
+            }
+        }
         view('admin/merchant-delivery-prices', [
             'merchant' => $merchant,
-            'defaultDeliveryPrices' => $defaultDeliveryPrices,
+            'deliveryPrices' => $deliveryPrices,
         ]);
     }
 
@@ -72,16 +164,20 @@ class SuperAdminController
     {
         Auth::requireRole('super_admin');
         $merchantId = (int) ($_POST['merchant_id'] ?? 0);
-        $deliveryPrices = trim($_POST['delivery_prices_json'] ?? '');
         $orderPrefix = trim($_POST['order_prefix'] ?? 'GFM');
-
-        if ($deliveryPrices === '') {
-            $deliveryPrices = json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE);
+        $deliveryPrices = $_POST['delivery_prices'] ?? [];
+        if (!is_array($deliveryPrices)) {
+            $deliveryPrices = [];
+        }
+        $sanitized = [];
+        foreach ($this->defaultDeliveryPrices() as $wilaya => $defaultPrice) {
+            $price = $deliveryPrices[$wilaya] ?? $defaultPrice;
+            $sanitized[$wilaya] = is_numeric($price) ? (int) $price : $defaultPrice;
         }
 
         $stmt = Database::connection()->prepare('UPDATE merchants SET delivery_prices_json = :delivery_prices_json, order_prefix = :order_prefix WHERE id = :id');
         $stmt->execute([
-            'delivery_prices_json' => $deliveryPrices,
+            'delivery_prices_json' => json_encode($sanitized, JSON_UNESCAPED_UNICODE),
             'order_prefix' => $orderPrefix,
             'id' => $merchantId,
         ]);
@@ -201,7 +297,18 @@ class SuperAdminController
     {
         Auth::requireRole('super_admin');
         $templates = Database::connection()->query('SELECT * FROM templates ORDER BY created_at DESC')->fetchAll();
-        view('admin/templates', ['templates' => $templates]);
+        $templatesDir = __DIR__ . '/../../resources/views/landing/templates';
+        $installedTemplates = [];
+        if (is_dir($templatesDir)) {
+            foreach (glob($templatesDir . '/*.php') as $file) {
+                $installedTemplates[] = pathinfo($file, PATHINFO_FILENAME);
+            }
+        }
+
+        view('admin/templates', [
+            'templates' => $templates,
+            'installedTemplates' => $installedTemplates,
+        ]);
     }
 
     public function previewTemplate(): void
@@ -337,13 +444,20 @@ class SuperAdminController
     public function pagesIndex(): void
     {
         Auth::requireRole('super_admin');
+        $selectedMerchantId = (int) ($_GET['merchant_id'] ?? 0);
         $merchants = Database::connection()->query('SELECT * FROM merchants ORDER BY name')->fetchAll();
         $templates = Database::connection()->query('SELECT * FROM templates ORDER BY name')->fetchAll();
-        $pages = Database::connection()->query('SELECT pages.*, merchants.name AS merchant_name, merchants.subdomain FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id ORDER BY pages.created_at DESC')->fetchAll();
+        if ($selectedMerchantId > 0) {
+            $stmt = Database::connection()->prepare('SELECT pages.*, merchants.name AS merchant_name, merchants.subdomain FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id WHERE merchants.id = :merchant_id ORDER BY pages.created_at DESC');
+            $stmt->execute(['merchant_id' => $selectedMerchantId]);
+            $pages = $stmt->fetchAll();
+        } else {
+            $pages = Database::connection()->query('SELECT pages.*, merchants.name AS merchant_name, merchants.subdomain FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id ORDER BY pages.created_at DESC')->fetchAll();
+        }
         foreach ($pages as &$page) {
             $content = json_decode($page['content_json'] ?? '{}', true) ?? [];
             $page['delivery_price'] = $content['delivery_price'] ?? '500';
-            $page['delivery_prices'] = $content['delivery_prices'] ?? '';
+            $page['delivery_prices'] = $content['delivery_prices'] ?? json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE);
         }
 
         $defaultDeliveryPrices = $this->defaultDeliveryPrices();
@@ -352,6 +466,7 @@ class SuperAdminController
             'merchants' => $merchants,
             'templates' => $templates,
             'pages' => $pages,
+            'selectedMerchantId' => $selectedMerchantId,
             'defaultDeliveryPrices' => $defaultDeliveryPrices,
         ]);
     }
@@ -366,7 +481,15 @@ class SuperAdminController
         $price = trim($_POST['price'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $deliveryPrice = trim($_POST['delivery_price'] ?? '500');
-        $deliveryPrices = trim($_POST['delivery_prices'] ?? '');
+        $deliveryPrices = $_POST['delivery_prices'] ?? [];
+        if (!is_array($deliveryPrices)) {
+            $deliveryPrices = [];
+        }
+        $sanitizedDeliveryPrices = [];
+        foreach ($this->defaultDeliveryPrices() as $wilaya => $defaultPrice) {
+            $priceValue = $deliveryPrices[$wilaya] ?? $defaultPrice;
+            $sanitizedDeliveryPrices[$wilaya] = is_numeric($priceValue) ? (int) $priceValue : $defaultPrice;
+        }
 
         if ($merchantId === 0 || $templateId === 0 || $title === '' || $slug === '') {
             $_SESSION['flash_error'] = 'يرجى ملء جميع بيانات الصفحة.';
@@ -380,7 +503,7 @@ class SuperAdminController
             'features' => "- توصيل سريع\n- الدفع عند الاستلام\n- منتج موثوق",
             'gallery' => '',
             'delivery_price' => $deliveryPrice,
-            'delivery_prices' => $deliveryPrices !== '' ? $deliveryPrices : json_encode($this->defaultDeliveryPrices(), JSON_UNESCAPED_UNICODE),
+            'delivery_prices' => json_encode($sanitizedDeliveryPrices, JSON_UNESCAPED_UNICODE),
         ];
 
         $stmt = Database::connection()->prepare('INSERT INTO pages (merchant_id, template_id, title, slug, price, description, content_json, is_active, created_at) VALUES (:merchant_id, :template_id, :title, :slug, :price, :description, :content_json, 1, NOW())');
@@ -407,17 +530,23 @@ class SuperAdminController
         $price = trim($_POST['price'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $deliveryPrice = trim($_POST['delivery_price'] ?? '500');
-        $deliveryPrices = trim($_POST['delivery_prices'] ?? '');
+        $deliveryPrices = $_POST['delivery_prices'] ?? [];
         $isActive = isset($_POST['is_active']) ? 1 : 0;
+        if (!is_array($deliveryPrices)) {
+            $deliveryPrices = [];
+        }
+        $sanitizedDeliveryPrices = [];
+        foreach ($this->defaultDeliveryPrices() as $wilaya => $defaultPrice) {
+            $priceValue = $deliveryPrices[$wilaya] ?? $defaultPrice;
+            $sanitizedDeliveryPrices[$wilaya] = is_numeric($priceValue) ? (int) $priceValue : $defaultPrice;
+        }
 
         $pageStmt = Database::connection()->prepare('SELECT content_json FROM pages WHERE id = :id');
         $pageStmt->execute(['id' => $pageId]);
         $page = $pageStmt->fetch();
         $content = json_decode($page['content_json'] ?? '{}', true) ?? [];
         $content['delivery_price'] = $deliveryPrice;
-        if ($deliveryPrices !== '') {
-            $content['delivery_prices'] = $deliveryPrices;
-        }
+        $content['delivery_prices'] = json_encode($sanitizedDeliveryPrices, JSON_UNESCAPED_UNICODE);
 
         $stmt = Database::connection()->prepare('UPDATE pages SET title = :title, slug = :slug, price = :price, description = :description, is_active = :is_active, updated_at = NOW() WHERE id = :id');
         $stmt->execute([
@@ -452,8 +581,40 @@ class SuperAdminController
     public function ordersIndex(): void
     {
         Auth::requireRole('super_admin');
-        $orders = Order::all();
-        view('admin/orders', ['orders' => $orders]);
+        $merchantId = (int) ($_GET['merchant_id'] ?? 0);
+        $merchants = Database::connection()->query('SELECT id, name FROM merchants ORDER BY name')->fetchAll();
+        $stats = Database::connection()->query(
+            "SELECT merchants.id, merchants.name,
+                COUNT(orders.id) AS total_orders,
+                COALESCE(SUM(CASE WHEN orders.status = 'new' THEN 1 ELSE 0 END), 0) AS new_orders,
+                COALESCE(SUM(CASE WHEN orders.status = 'confirmed' THEN 1 ELSE 0 END), 0) AS confirmed_orders,
+                COALESCE(SUM(CASE WHEN orders.status = 'shipped' THEN 1 ELSE 0 END), 0) AS shipped_orders,
+                COALESCE(SUM(CASE WHEN orders.status = 'cancelled' THEN 1 ELSE 0 END), 0) AS cancelled_orders
+            FROM merchants
+            LEFT JOIN orders ON orders.merchant_id = merchants.id
+            GROUP BY merchants.id
+            ORDER BY merchants.name"
+        )->fetchAll();
+
+        $orders = [];
+        $selectedMerchant = null;
+        if ($merchantId > 0) {
+            $stmt = Database::connection()->prepare('SELECT id, name FROM merchants WHERE id = :id');
+            $stmt->execute(['id' => $merchantId]);
+            $selectedMerchant = $stmt->fetch();
+            if ($selectedMerchant) {
+                $stmt = Database::connection()->prepare('SELECT orders.*, pages.title AS page_title FROM orders INNER JOIN pages ON orders.page_id = pages.id WHERE orders.merchant_id = :merchant_id ORDER BY orders.created_at DESC');
+                $stmt->execute(['merchant_id' => $merchantId]);
+                $orders = $stmt->fetchAll();
+            }
+        }
+
+        view('admin/orders', [
+            'merchants' => $merchants,
+            'stats' => $stats,
+            'orders' => $orders,
+            'selectedMerchant' => $selectedMerchant,
+        ]);
     }
 
     public function updateOrder(): void
@@ -461,20 +622,30 @@ class SuperAdminController
         Auth::requireRole('super_admin');
         $orderId = (int) ($_POST['order_id'] ?? 0);
         $status = trim($_POST['status'] ?? '');
+        $merchantId = (int) ($_POST['merchant_id'] ?? 0);
         $stmt = Database::connection()->prepare('UPDATE orders SET status = :status WHERE id = :id');
         $stmt->execute(['status' => $status, 'id' => $orderId]);
         $_SESSION['flash_success'] = 'تم تحديث الطلب.';
-        header('Location: /admin/orders');
+        $redirect = '/admin/orders';
+        if ($merchantId > 0) {
+            $redirect .= '?merchant_id=' . $merchantId;
+        }
+        header('Location: ' . $redirect);
     }
 
     public function deleteOrder(): void
     {
         Auth::requireRole('super_admin');
         $orderId = (int) ($_POST['order_id'] ?? 0);
+        $merchantId = (int) ($_POST['merchant_id'] ?? 0);
         $stmt = Database::connection()->prepare('DELETE FROM orders WHERE id = :id');
         $stmt->execute(['id' => $orderId]);
         $_SESSION['flash_success'] = 'تم حذف الطلب.';
-        header('Location: /admin/orders');
+        $redirect = '/admin/orders';
+        if ($merchantId > 0) {
+            $redirect .= '?merchant_id=' . $merchantId;
+        }
+        header('Location: ' . $redirect);
     }
 
     public function usersIndex(): void

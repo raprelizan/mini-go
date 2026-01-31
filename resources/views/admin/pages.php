@@ -3,6 +3,7 @@ $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<nav class="nav flex-column">'
     . '<a class="nav-link" href="/admin">نظرة عامة</a>'
     . '<a class="nav-link" href="/admin/merchants">التجار</a>'
+    . '<a class="nav-link" href="/admin/merchant-registrations">طلبات التجار</a>'
     . '<a class="nav-link active" href="/admin/pages">الصفحات</a>'
     . '<a class="nav-link" href="/admin/templates">القوالب</a>'
     . '<a class="nav-link" href="/admin/orders">الطلبات</a>'
@@ -19,13 +20,50 @@ ob_start();
 ?>
 <div class="card app-card mb-4">
     <div class="card-body">
+        <h5 class="mb-3">التجار</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-sm btn-outline-light" href="/admin/pages">الكل</a>
+            <?php foreach ($merchants as $merchant) : ?>
+                <a class="btn btn-sm btn-outline-info" href="/admin/pages?merchant_id=<?= (int) $merchant['id'] ?>">
+                    <?= htmlspecialchars($merchant['name']) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<div class="card app-card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label">تصفية حسب التاجر</label>
+                <select class="form-select" onchange="if (this.value) { window.location.href = '/admin/pages?merchant_id=' + this.value; } else { window.location.href = '/admin/pages'; }">
+                    <option value="">جميع التجار</option>
+                    <?php foreach ($merchants as $merchant) : ?>
+                        <option value="<?= (int) $merchant['id'] ?>" <?= ($selectedMerchantId ?? 0) === (int) $merchant['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($merchant['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php if (!empty($selectedMerchantId)) : ?>
+                <div class="col-md-8 text-end">
+                    <span class="badge text-bg-info">إظهار صفحات التاجر المحدد</span>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<div class="card app-card mb-4">
+    <div class="card-body">
         <form method="post" action="/admin/pages" class="row g-3">
             <?= csrf_field() ?>
             <div class="col-md-2">
                 <select name="merchant_id" class="form-select" required>
                     <option value="">التاجر</option>
                     <?php foreach ($merchants as $merchant) : ?>
-                        <option value="<?= (int) $merchant['id'] ?>"><?= htmlspecialchars($merchant['name']) ?></option>
+                        <option value="<?= (int) $merchant['id'] ?>" <?= ($selectedMerchantId ?? 0) === (int) $merchant['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($merchant['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -56,9 +94,15 @@ ob_start();
                 <input type="text" name="description" class="form-control" placeholder="وصف مختصر">
             </div>
             <div class="col-12">
-                <label class="form-label text-secondary">أسعار التوصيل لكل ولاية (JSON)</label>
-                <textarea name="delivery_prices" class="form-control" rows="4"><?= htmlspecialchars(json_encode($defaultDeliveryPrices, JSON_UNESCAPED_UNICODE)) ?></textarea>
-                <div class="form-text text-secondary">أدخل JSON مثل {"الجزائر":500,"وهران":700}</div>
+                <label class="form-label text-secondary">أسعار التوصيل لكل ولاية</label>
+                <div class="row g-3">
+                    <?php foreach ($defaultDeliveryPrices as $wilaya => $price) : ?>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary"><?= htmlspecialchars($wilaya) ?></label>
+                            <input type="number" name="delivery_prices[<?= htmlspecialchars($wilaya) ?>]" class="form-control" value="<?= htmlspecialchars((string) $price) ?>" min="0">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </form>
     </div>
@@ -97,7 +141,15 @@ ob_start();
                                 <td>
                                     <input class="form-control form-control-sm" name="price" value="<?= htmlspecialchars($page['price']) ?>">
                                     <input class="form-control form-control-sm mt-2" name="delivery_price" value="<?= htmlspecialchars((string) ($page['delivery_price'] ?? '500')) ?>">
-                                    <textarea class="form-control form-control-sm mt-2" name="delivery_prices" rows="3"><?= htmlspecialchars($page['delivery_prices'] ?? '') ?></textarea>
+                                    <?php $pageDeliveryPrices = json_decode($page['delivery_prices'] ?? '', true) ?: $defaultDeliveryPrices; ?>
+                                    <div class="row g-2 mt-2">
+                                        <?php foreach ($pageDeliveryPrices as $wilaya => $price) : ?>
+                                            <div class="col-md-6">
+                                                <label class="form-label text-secondary"><?= htmlspecialchars($wilaya) ?></label>
+                                                <input class="form-control form-control-sm" name="delivery_prices[<?= htmlspecialchars($wilaya) ?>]" value="<?= htmlspecialchars((string) $price) ?>">
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="form-check form-switch">

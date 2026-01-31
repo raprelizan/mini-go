@@ -12,6 +12,7 @@ ob_start();
                 <a class="nav-link" href="#features">المزايا</a>
                 <a class="nav-link" href="#flow">كيف تعمل</a>
                 <a class="nav-link" href="#cta">ابدأ الآن</a>
+                <a class="nav-link" href="/merchant/register">تسجيل كتاجر</a>
             </nav>
             <a class="btn btn-accent" href="/login">تسجيل الدخول</a>
         </div>
@@ -109,7 +110,10 @@ ob_start();
         <div class="cta-card">
             <h3>جاهز لإطلاق منصتك؟</h3>
             <p>ابدأ الآن وأنشئ أول حساب Super Admin للتحكم الكامل.</p>
-            <a class="btn btn-accent" href="/setup">ابدأ الإعداد</a>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a class="btn btn-accent" href="/setup">ابدأ الإعداد</a>
+                <a class="btn btn-outline-light" href="/merchant/register">تسجيل كتاجر</a>
+            </div>
         </div>
     </div>
 </section>

@@ -4,6 +4,7 @@ $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<a class="nav-link" href="/admin">نظرة عامة</a>'
     . '<a class="nav-link" href="/admin/merchants">التجار</a>'
     . '<a class="nav-link" href="/admin/pages">الصفحات</a>'
+    . '<a class="nav-link" href="/admin/merchant-registrations">طلبات التجار</a>'
     . '<a class="nav-link active" href="/admin/templates">القوالب</a>'
     . '<a class="nav-link" href="/admin/orders">الطلبات</a>'
     . '<a class="nav-link" href="/admin/users">المشرفون</a>'
@@ -34,6 +35,21 @@ ob_start();
                 <button class="btn btn-accent w-100" type="submit">إضافة قالب</button>
             </div>
         </form>
+    </div>
+</div>
+<div class="card app-card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">القوالب المثبتة</h5>
+        <?php if (!empty($installedTemplates)) : ?>
+            <div class="d-flex flex-wrap gap-2">
+                <?php foreach ($installedTemplates as $templateKey) : ?>
+                    <span class="badge text-bg-secondary"><?= htmlspecialchars($templateKey) ?></span>
+                <?php endforeach; ?>
+            </div>
+        <?php else : ?>
+            <p class="text-secondary">لا توجد قوالب مخصصة مثبتة حالياً.</p>
+        <?php endif; ?>
+        <p class="text-secondary mt-3">يمكنك إضافة قالب جديد داخل <code>resources/views/landing/templates</code> ثم إدخاله من خلال النموذج أعلاه.</p>
     </div>
 </div>
 <div class="row g-4">

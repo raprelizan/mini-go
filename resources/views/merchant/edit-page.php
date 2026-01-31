@@ -27,8 +27,25 @@ ob_start();
                     <?php if ($field['field_type'] === 'textarea') : ?>
                         <textarea name="field_<?= htmlspecialchars($field['field_key']) ?>" class="form-control" rows="4"><?= htmlspecialchars($pageData[$field['field_key']] ?? '') ?></textarea>
                         <?php if ($field['field_key'] === 'gallery') : ?>
-                            <input type="file" name="gallery_files[]" class="form-control mt-2" multiple accept="image/*">
-                            <div class="form-text text-secondary">يمكنك إضافة روابط أو رفع صور وسيتم حفظها تلقائياً.</div>
+                            <?php $galleryItems = array_filter(array_map('trim', explode(',', $pageData['gallery'] ?? ''))); ?>
+                            <?php if ($galleryItems) : ?>
+                                <div class="row g-3 mt-3">
+                                    <?php foreach ($galleryItems as $item) : ?>
+                                        <div class="col-md-4">
+                                            <div class="card app-card p-2">
+                                                <img src="<?= htmlspecialchars($item) ?>" alt="gallery" class="img-fluid rounded">
+                                                <input type="text" name="gallery_existing[]" class="form-control mt-2" value="<?= htmlspecialchars($item) ?>">
+                                                <div class="form-check mt-2">
+                                                    <input class="form-check-input" type="checkbox" name="gallery_remove[]" value="<?= htmlspecialchars($item) ?>" id="remove_<?= md5($item) ?>">
+                                                    <label class="form-check-label" for="remove_<?= md5($item) ?>">حذف الصورة</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" name="gallery_files[]" class="form-control mt-3" multiple accept="image/*">
+                            <div class="form-text text-secondary">يمكنك إضافة روابط أو رفع صور وسيتم حفظها تلقائياً. يمكنك تعديل الرابط أو تحديد الحذف لكل صورة.</div>
                         <?php endif; ?>
                     <?php else : ?>
                         <input type="text" name="field_<?= htmlspecialchars($field['field_key']) ?>" class="form-control" value="<?= htmlspecialchars($pageData[$field['field_key']] ?? '') ?>">
