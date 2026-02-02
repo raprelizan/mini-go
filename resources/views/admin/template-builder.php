@@ -14,24 +14,45 @@ $sidebar = '<div class="brand">لوحة التحكم</div>'
     . '<button class="btn btn-outline-light w-100" type="submit">تسجيل الخروج</button>'
     . '</form>'
     . '</nav>';
-$title = 'منشئ القالب المباشر';
-$subtitle = 'تحرير الأقسام وترتيبها مع معاينة مباشرة قبل الحفظ.';
+$title = 'منشئ القالب المتقدم';
+$subtitle = 'منشئ بصري شبيه بـ Shopify Sections مع معاينة حية وتوليد قالب PHP.';
 ob_start();
 ?>
 <style>
+    .builder-shell {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 24px;
+    }
+
     .builder-panel {
-        background: rgba(17, 24, 39, 0.9);
+        background: rgba(17, 24, 39, 0.95);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 18px;
         padding: 20px;
+        height: calc(100vh - 180px);
+        overflow: auto;
+    }
+
+    .builder-panel h6 {
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .sections-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .builder-section {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px dashed rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed rgba(255, 255, 255, 0.2);
         border-radius: 14px;
         padding: 12px 16px;
-        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         cursor: grab;
     }
 
@@ -39,12 +60,50 @@ ob_start();
         opacity: 0.6;
     }
 
-    .preview-panel {
+    .builder-section .handle {
+        color: #94a3b8;
+        font-size: 1rem;
+    }
+
+    .builder-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .preview-stage {
+        background: #0b1120;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 20px;
+        padding: 18px;
+        min-height: 70vh;
+        position: relative;
+    }
+
+    .preview-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .preview-frame {
+        background: #020617;
+        border-radius: 18px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         padding: 20px;
-        background: #0b1120;
-        min-height: 500px;
+        min-height: 70vh;
+        transition: width 0.25s ease;
+        margin: 0 auto;
+    }
+
+    .preview-frame.phone {
+        width: 390px;
+    }
+
+    .preview-frame.desktop {
+        width: 100%;
     }
 
     .preview-section {
@@ -85,63 +144,92 @@ ob_start();
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.08); }
     }
+
+    .export-box {
+        background: rgba(15, 23, 42, 0.7);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 16px;
+        margin-top: 16px;
+    }
+
+    .export-box textarea {
+        background: #0b1120;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        min-height: 220px;
+    }
 </style>
 
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="builder-panel">
-            <h5 class="mb-3">الإعدادات الأساسية</h5>
-            <div class="mb-3">
-                <label class="form-label">نص الشريط المتحرك</label>
-                <input type="text" class="form-control" id="builderTicker" value="تخفيضات رمضان لفترة محدودة ✨ الكمية محدودة - اطلب الآن">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">اسم المنتج</label>
-                <input type="text" class="form-control" id="builderTitle" value="سماعات بلوتوث">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">السعر</label>
-                <input type="text" class="form-control" id="builderPrice" value="4900 دج">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">وصف مختصر</label>
-                <textarea class="form-control" id="builderSubtitle" rows="3">تخفيض خاص بمناسبة رمضان مع شحن سريع لكل الولايات.</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">روابط الصور (سطر لكل صورة)</label>
-                <textarea class="form-control" id="builderImages" rows="4">https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80
-https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">وصف تفصيلي</label>
-                <textarea class="form-control" id="builderDescription" rows="4">بطارية قوية - جودة صوت عالية - تصميم مريح - ضمان سنة كاملة.</textarea>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-accent" type="button" id="btnPreview">معاينة</button>
-                <button class="btn btn-outline-light" type="button" id="btnReset">إعادة ضبط</button>
-            </div>
+<div class="builder-shell">
+    <div class="builder-panel">
+        <h6>إعدادات المحتوى</h6>
+        <div class="mb-3">
+            <label class="form-label">نص الشريط المتحرك</label>
+            <input type="text" class="form-control" id="builderTicker" value="تخفيضات رمضان لفترة محدودة ✨ الكمية محدودة - اطلب الآن">
         </div>
-        <div class="builder-panel mt-4">
-            <h5 class="mb-3">ترتيب الأقسام</h5>
-            <div id="sectionsList">
-                <div class="builder-section" draggable="true" data-section="ticker">الشريط المتحرك</div>
-                <div class="builder-section" draggable="true" data-section="hero">العنوان + السعر + وصف</div>
-                <div class="builder-section" draggable="true" data-section="gallery">صور المنتج</div>
-                <div class="builder-section" draggable="true" data-section="description">الوصف + الصور</div>
-                <div class="builder-section" draggable="true" data-section="order">نموذج الطلب</div>
-                <div class="builder-section" draggable="true" data-section="footer">Footer</div>
-            </div>
-            <div class="mt-3">
-                <label class="form-label">إضافة قسم جديد</label>
-                <div class="d-flex gap-2">
-                    <input type="text" class="form-control" id="newSectionName" placeholder="مثال: شهادات العملاء">
-                    <button class="btn btn-outline-info" type="button" id="btnAddSection">إضافة</button>
-                </div>
+        <div class="mb-3">
+            <label class="form-label">اسم المنتج</label>
+            <input type="text" class="form-control" id="builderTitle" value="سماعات بلوتوث">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">السعر</label>
+            <input type="text" class="form-control" id="builderPrice" value="4900 دج">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">وصف مختصر</label>
+            <textarea class="form-control" id="builderSubtitle" rows="3">تخفيض خاص بمناسبة رمضان مع شحن سريع لكل الولايات.</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">روابط الصور (سطر لكل صورة)</label>
+            <textarea class="form-control" id="builderImages" rows="4">https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80
+https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">وصف تفصيلي</label>
+            <textarea class="form-control" id="builderDescription" rows="4">بطارية قوية - جودة صوت عالية - تصميم مريح - ضمان سنة كاملة.</textarea>
+        </div>
+        <div class="builder-actions">
+            <button class="btn btn-accent" type="button" id="btnPreview">معاينة</button>
+            <button class="btn btn-outline-light" type="button" id="btnReset">إعادة ضبط</button>
+            <button class="btn btn-outline-info" type="button" id="btnCopy">نسخ القالب</button>
+            <button class="btn btn-outline-success" type="button" id="btnDownload">حفظ كملف</button>
+        </div>
+
+        <hr class="border-secondary my-4">
+
+        <h6>الأقسام (سحب لترتيبها)</h6>
+        <div class="sections-list" id="sectionsList">
+            <div class="builder-section" draggable="true" data-section="ticker"><span>الشريط المتحرك</span><span class="handle">⇅</span></div>
+            <div class="builder-section" draggable="true" data-section="hero"><span>العنوان + السعر</span><span class="handle">⇅</span></div>
+            <div class="builder-section" draggable="true" data-section="gallery"><span>صور المنتج</span><span class="handle">⇅</span></div>
+            <div class="builder-section" draggable="true" data-section="description"><span>الوصف + صور</span><span class="handle">⇅</span></div>
+            <div class="builder-section" draggable="true" data-section="order"><span>نموذج الطلب</span><span class="handle">⇅</span></div>
+            <div class="builder-section" draggable="true" data-section="footer"><span>Footer</span><span class="handle">⇅</span></div>
+        </div>
+        <div class="mt-3">
+            <label class="form-label">إضافة قسم جديد</label>
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control" id="newSectionName" placeholder="مثال: شهادات العملاء">
+                <button class="btn btn-outline-info" type="button" id="btnAddSection">إضافة</button>
             </div>
         </div>
     </div>
-    <div class="col-lg-8">
-        <div class="preview-panel" id="livePreview"></div>
+
+    <div class="preview-stage">
+        <div class="preview-toolbar">
+            <div class="btn-group">
+                <button class="btn btn-outline-light" type="button" data-device="desktop">كمبيوتر</button>
+                <button class="btn btn-outline-light" type="button" data-device="phone">هاتف</button>
+            </div>
+            <div class="text-secondary">معاينة مباشرة مثل Shopify Sections</div>
+        </div>
+        <div class="preview-frame desktop" id="livePreview"></div>
+
+        <div class="export-box">
+            <h6 class="mb-2">توليد قالب PHP</h6>
+            <textarea class="form-control" id="templateOutput" readonly></textarea>
+        </div>
     </div>
 </div>
 
@@ -153,7 +241,7 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div id="modalPreview" class="preview-panel"></div>
+                <div id="modalPreview" class="preview-frame desktop"></div>
             </div>
         </div>
     </div>
@@ -163,6 +251,7 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
     const sectionsList = document.getElementById('sectionsList');
     const livePreview = document.getElementById('livePreview');
     const modalPreview = document.getElementById('modalPreview');
+    const templateOutput = document.getElementById('templateOutput');
     const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
 
     const inputs = {
@@ -174,18 +263,40 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
         description: document.getElementById('builderDescription'),
     };
 
+    const sectionTemplates = (data) => ({
+        ticker: `<div class="preview-section"><div class="preview-banner">${data.ticker}</div></div>`,
+        hero: `<div class="preview-section"><div class="preview-discount">تخفيض</div><span class="preview-price">${data.price}</span><h2 class="mt-3">${data.title}</h2><p class="text-secondary">${data.subtitle}</p></div>`,
+        gallery: `<div class="preview-section"><div class="row g-2">${data.images.map((src) => `<div class="col-md-4"><img src="${src}" class="img-fluid rounded" alt=""></div>`).join('')}</div></div>`,
+        description: `<div class="preview-section"><h4>وصف المنتج</h4><p class="text-secondary">${data.description}</p></div>`,
+        order: `<div class="preview-section"><h4>نموذج الطلب</h4><div class="text-secondary">سيظهر نموذج الطلب النهائي هنا داخل الموقع.</div></div>`,
+        footer: `<div class="preview-section text-secondary">Footer مرتب مع بيانات المتجر.</div>`,
+    });
+
+    const buildData = () => ({
+        ticker: inputs.ticker.value,
+        title: inputs.title.value,
+        price: inputs.price.value,
+        subtitle: inputs.subtitle.value,
+        images: inputs.images.value.split('\n').filter(Boolean),
+        description: inputs.description.value,
+    });
+
     const renderPreview = (target) => {
-        const images = inputs.images.value.split('\\n').filter(Boolean);
+        const data = buildData();
         const sections = Array.from(sectionsList.querySelectorAll('.builder-section')).map((el) => el.dataset.section);
-        const sectionHtml = {
-            ticker: `<div class="preview-section"><div class="preview-banner">${inputs.ticker.value}</div></div>`,
-            hero: `<div class="preview-section"><div class="preview-discount">تخفيض</div><span class="preview-price">${inputs.price.value}</span><h2 class="mt-3">${inputs.title.value}</h2><p class="text-secondary">${inputs.subtitle.value}</p></div>`,
-            gallery: `<div class="preview-section"><div class="row g-2">${images.map((src) => `<div class="col-md-4"><img src="${src}" class="img-fluid rounded" alt=""></div>`).join('')}</div></div>`,
-            description: `<div class="preview-section"><h4>وصف المنتج</h4><p class="text-secondary">${inputs.description.value}</p></div>`,
-            order: `<div class="preview-section"><h4>نموذج الطلب</h4><div class="text-secondary">سيظهر نموذج الطلب النهائي هنا داخل الموقع.</div></div>`,
-            footer: `<div class="preview-section text-secondary">Footer مرتب مع بيانات المتجر.</div>`,
-        };
-        target.innerHTML = sections.map((key) => sectionHtml[key] || `<div class="preview-section">${key}</div>`).join('');
+        const templates = sectionTemplates(data);
+        target.innerHTML = sections.map((key) => templates[key] || `<div class="preview-section">${key}</div>`).join('');
+    };
+
+    const generateTemplate = () => {
+        const data = buildData();
+        const sections = Array.from(sectionsList.querySelectorAll('.builder-section')).map((el) => el.dataset.section);
+        const htmlSections = sectionTemplates(data);
+        return `<!-- Generated by Template Builder -->\n<div class="landing-template">\n${sections.map((key) => htmlSections[key] || `<div>${key}</div>`).join('\n')}\n</div>`;
+    };
+
+    const updateOutput = () => {
+        templateOutput.value = generateTemplate();
     };
 
     const enableDrag = () => {
@@ -197,6 +308,7 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
         sectionsList.addEventListener('dragend', (event) => {
             event.target.classList.remove('dragging');
             renderPreview(livePreview);
+            updateOutput();
         });
         sectionsList.addEventListener('dragover', (event) => {
             event.preventDefault();
@@ -210,6 +322,13 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
         });
     };
 
+    document.querySelectorAll('[data-device]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            livePreview.classList.toggle('phone', btn.dataset.device === 'phone');
+            livePreview.classList.toggle('desktop', btn.dataset.device === 'desktop');
+        });
+    });
+
     document.getElementById('btnPreview').addEventListener('click', () => {
         renderPreview(modalPreview);
         previewModal.show();
@@ -220,4 +339,50 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
         inputs.title.value = 'سماعات بلوتوث';
         inputs.price.value = '4900 دج';
         inputs.subtitle.value = 'تخفيض خاص بمناسبة رمضان مع شحن سريع لكل الولايات.';
-        inputs.images.value = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80\\nhttps://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80';\n        inputs.description.value = 'بطارية قوية - جودة صوت عالية - تصميم مريح - ضمان سنة كاملة.';\n        renderPreview(livePreview);\n    });\n\n    document.getElementById('btnAddSection').addEventListener('click', () => {\n        const name = document.getElementById('newSectionName').value.trim();\n        if (!name) return;\n        const div = document.createElement('div');\n        div.className = 'builder-section';\n        div.draggable = true;\n        div.dataset.section = name;\n        div.textContent = name;\n        sectionsList.appendChild(div);\n        document.getElementById('newSectionName').value = '';\n        renderPreview(livePreview);\n    });\n\n    Object.values(inputs).forEach((input) => {\n        input.addEventListener('input', () => renderPreview(livePreview));\n    });\n\n    enableDrag();\n    renderPreview(livePreview);\n</script>\n<?php\n$content = ob_get_clean();\nrequire __DIR__ . '/../layouts/app.php';\nPHP","workdir":"/workspace/mini-go"}    } )"""}  # ၘ
+        inputs.images.value = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80\nhttps://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80';
+        inputs.description.value = 'بطارية قوية - جودة صوت عالية - تصميم مريح - ضمان سنة كاملة.';
+        renderPreview(livePreview);
+        updateOutput();
+    });
+
+    document.getElementById('btnCopy').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(templateOutput.value);
+    });
+
+    document.getElementById('btnDownload').addEventListener('click', () => {
+        const blob = new Blob([templateOutput.value], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'landing-template.html';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    });
+
+    document.getElementById('btnAddSection').addEventListener('click', () => {
+        const name = document.getElementById('newSectionName').value.trim();
+        if (!name) return;
+        const div = document.createElement('div');
+        div.className = 'builder-section';
+        div.draggable = true;
+        div.dataset.section = name;
+        div.innerHTML = `<span>${name}</span><span class="handle">⇅</span>`;
+        sectionsList.appendChild(div);
+        document.getElementById('newSectionName').value = '';
+        renderPreview(livePreview);
+        updateOutput();
+    });
+
+    Object.values(inputs).forEach((input) => {
+        input.addEventListener('input', () => {
+            renderPreview(livePreview);
+            updateOutput();
+        });
+    });
+
+    enableDrag();
+    renderPreview(livePreview);
+    updateOutput();
+</script>
+<?php
+$content = ob_get_clean();
+require __DIR__ . '/../layouts/app.php';
