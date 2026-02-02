@@ -1,4 +1,12 @@
 <?php
+// ===========================
+// ⚠️ مهم: الأقسام الأساسية التي لا يجب تغييرها
+// 1) المتغيرات التالية لأنها تغذي القالب بالبيانات الديناميكية:
+//    $page, $merchant, $pageData, $gallery, $deliveryPrice, $productPrice,
+//    $deliveryPricesJson, $wilayas, $features
+// 2) نموذج الطلب بالكامل (form + csrf_field + أسماء الحقول).
+// 3) سكربت JavaScript الذي يحسب سعر التوصيل والإجمالي.
+// ===========================
 $sidebar = null;
 $title = $page['title'];
 $subtitle = $merchant['name'] . ' - تشكيلة مميزة';
@@ -146,6 +154,7 @@ ob_start();
                         </div>
                         <div class="order-box">
                             <h4>اطلب الآن</h4>
+                            <!-- ⚠️ لا تغيّر نموذج الطلب أو أسماء الحقول أو action أو csrf -->
                             <form method="post" action="/<?= htmlspecialchars($merchant['subdomain']) ?>/<?= htmlspecialchars($page['slug']) ?>/order" class="vstack gap-3" data-delivery="<?= $deliveryPrice ?>" data-product="<?= $productPrice ?>" data-delivery-map='<?= htmlspecialchars($deliveryPricesJson) ?>'>
                                 <?= csrf_field() ?>
                                 <input type="text" name="full_name" class="form-control" placeholder="الاسم الكامل" required>
@@ -210,6 +219,7 @@ ob_start();
         </div>
     </section>
 </div>
+<!-- ⚠️ لا تغيّر سكربت حساب التوصيل والإجمالي -->
 <script>
     const orderForm = document.querySelector('.order-box form');
     if (orderForm) {
