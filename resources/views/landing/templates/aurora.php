@@ -123,7 +123,11 @@ ob_start();
                             <span class="badge-pill" style="border-color: rgba(34, 211, 238, 0.4); background: rgba(34, 211, 238, 0.15);">ضمان جودة</span>
                         </div>
                         <h1 class="display-5 fw-bold mb-3"><?= htmlspecialchars($pageData['headline'] ?? $page['title']) ?></h1>
-                        <p class="lead text-secondary mb-4"><?= htmlspecialchars($pageData['subheadline'] ?? $page['description']) ?></p>
+                        <?php if (!empty($pageData['subheadline'])) : ?>
+                            <div class="lead text-secondary mb-4 rich-content"><?= $pageData['subheadline'] ?></div>
+                        <?php else : ?>
+                            <p class="lead text-secondary mb-4"><?= htmlspecialchars($page['description']) ?></p>
+                        <?php endif; ?>
                         <div class="d-flex align-items-center gap-3 flex-wrap">
                             <div class="price-chip"><?= htmlspecialchars($page['price']) ?> دج</div>
                             <span class="text-secondary">توصيل سريع لكل الولايات</span>

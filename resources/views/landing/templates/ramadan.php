@@ -152,7 +152,11 @@ ob_start();
                             <span><?= htmlspecialchars($page['price']) ?> دج</span>
                         </div>
                         <h1 class="display-5 fw-bold mb-3"><?= htmlspecialchars($pageData['headline'] ?? $page['title']) ?></h1>
-                        <p class="lead text-secondary mb-4"><?= htmlspecialchars($pageData['subheadline'] ?? $page['description']) ?></p>
+                        <?php if (!empty($pageData['subheadline'])) : ?>
+                            <div class="lead text-secondary mb-4 rich-content"><?= $pageData['subheadline'] ?></div>
+                        <?php else : ?>
+                            <p class="lead text-secondary mb-4"><?= htmlspecialchars($page['description']) ?></p>
+                        <?php endif; ?>
                         <div class="row g-3">
                             <?php foreach ($features as $feature) : ?>
                                 <div class="col-md-6">

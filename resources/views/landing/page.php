@@ -22,7 +22,11 @@ ob_start();
             <div class="col-lg-6">
                 <span class="badge text-bg-success mb-3">الدفع عند الاستلام</span>
                 <h2 class="display-6 fw-bold mb-3"><?= htmlspecialchars($pageData['headline'] ?? $page['title']) ?></h2>
-                <p class="lead mb-4"><?= htmlspecialchars($pageData['subheadline'] ?? $page['description']) ?></p>
+                <?php if (!empty($pageData['subheadline'])) : ?>
+                    <div class="lead mb-4 rich-content"><?= $pageData['subheadline'] ?></div>
+                <?php else : ?>
+                    <p class="lead mb-4"><?= htmlspecialchars($page['description']) ?></p>
+                <?php endif; ?>
                 <div class="price-tag"><?= htmlspecialchars($page['price']) ?> دج</div>
                 <div class="features mt-4">
                     <h5>مزايا المنتج</h5>

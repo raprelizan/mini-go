@@ -56,6 +56,12 @@ ob_start();
         cursor: grab;
     }
 
+    .builder-section .section-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
     .builder-section.dragging {
         opacity: 0.6;
     }
@@ -63,6 +69,13 @@ ob_start();
     .builder-section .handle {
         color: #94a3b8;
         font-size: 1rem;
+        cursor: grab;
+    }
+
+    .builder-section .section-remove {
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 0.8rem;
     }
 
     .builder-actions {
@@ -145,6 +158,16 @@ ob_start();
         50% { transform: scale(1.08); }
     }
 
+    .inline-edit {
+        outline: none;
+        border-bottom: 1px dashed transparent;
+        transition: border-color 0.2s ease;
+    }
+
+    .inline-edit:focus {
+        border-color: rgba(148, 163, 184, 0.8);
+    }
+
     .export-box {
         background: rgba(15, 23, 42, 0.7);
         border-radius: 14px;
@@ -200,12 +223,48 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
 
         <h6>الأقسام (سحب لترتيبها)</h6>
         <div class="sections-list" id="sectionsList">
-            <div class="builder-section" draggable="true" data-section="ticker"><span>الشريط المتحرك</span><span class="handle">⇅</span></div>
-            <div class="builder-section" draggable="true" data-section="hero"><span>العنوان + السعر</span><span class="handle">⇅</span></div>
-            <div class="builder-section" draggable="true" data-section="gallery"><span>صور المنتج</span><span class="handle">⇅</span></div>
-            <div class="builder-section" draggable="true" data-section="description"><span>الوصف + صور</span><span class="handle">⇅</span></div>
-            <div class="builder-section" draggable="true" data-section="order"><span>نموذج الطلب</span><span class="handle">⇅</span></div>
-            <div class="builder-section" draggable="true" data-section="footer"><span>Footer</span><span class="handle">⇅</span></div>
+            <div class="builder-section" data-section="ticker">
+                <div class="section-info">
+                    <span class="handle" draggable="true">⇅</span>
+                    <span>الشريط المتحرك</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>
+            </div>
+            <div class="builder-section" data-section="hero">
+                <div class="section-info">
+                    <span class="handle" draggable="true">⇅</span>
+                    <span>العنوان + السعر</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>
+            </div>
+            <div class="builder-section" data-section="gallery">
+                <div class="section-info">
+                    <span class="handle" draggable="true">⇅</span>
+                    <span>صور المنتج</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>
+            </div>
+            <div class="builder-section" data-section="description">
+                <div class="section-info">
+                    <span class="handle" draggable="true">⇅</span>
+                    <span>الوصف + صور</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>
+            </div>
+            <div class="builder-section" data-section="order">
+                <div class="section-info">
+                    <span class="handle" draggable="true">⇅</span>
+                    <span>نموذج الطلب</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>
+            </div>
+            <div class="builder-section" data-section="footer">
+                <div class="section-info">
+                    <span class="handle" draggable="true">⇅</span>
+                    <span>Footer</span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>
+            </div>
         </div>
         <div class="mt-3">
             <label class="form-label">إضافة قسم جديد</label>
@@ -265,11 +324,11 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
             description: document.getElementById('builderDescription'),
         };
 
-        const sectionTemplates = (data) => ({
-            ticker: `<div class="preview-section"><div class="preview-banner">${data.ticker}</div></div>`,
-            hero: `<div class="preview-section"><div class="preview-discount">تخفيض</div><span class="preview-price">${data.price}</span><h2 class="mt-3">${data.title}</h2><p class="text-secondary">${data.subtitle}</p></div>`,
+        const sectionTemplates = (data, editableAttr, bindAttr) => ({
+            ticker: `<div class="preview-section"><div class="preview-banner inline-edit" ${editableAttr} ${bindAttr('ticker')}>${data.ticker}</div></div>`,
+            hero: `<div class="preview-section"><div class="preview-discount">تخفيض</div><span class="preview-price inline-edit" ${editableAttr} ${bindAttr('price')}>${data.price}</span><h2 class="mt-3 inline-edit" ${editableAttr} ${bindAttr('title')}>${data.title}</h2><p class="text-secondary inline-edit" ${editableAttr} ${bindAttr('subtitle')}>${data.subtitle}</p></div>`,
             gallery: `<div class="preview-section"><div class="row g-2">${data.images.map((src) => `<div class="col-md-4"><img src="${src}" class="img-fluid rounded" alt=""></div>`).join('')}</div></div>`,
-            description: `<div class="preview-section"><h4>وصف المنتج</h4><p class="text-secondary">${data.description}</p></div>`,
+            description: `<div class="preview-section"><h4>وصف المنتج</h4><p class="text-secondary inline-edit" ${editableAttr} ${bindAttr('description')}>${data.description}</p></div>`,
             order: `<div class="preview-section"><h4>نموذج الطلب</h4><div class="text-secondary">سيظهر نموذج الطلب النهائي هنا داخل الموقع.</div></div>`,
             footer: `<div class="preview-section text-secondary">Footer مرتب مع بيانات المتجر.</div>`,
         });
@@ -286,14 +345,16 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
         const renderPreview = (target) => {
             const data = buildData();
             const sections = Array.from(sectionsList.querySelectorAll('.builder-section')).map((el) => el.dataset.section);
-            const templates = sectionTemplates(data);
+            const editableAttr = target === livePreview ? 'contenteditable="true"' : '';
+            const bindAttr = target === livePreview ? (key) => `data-bind="${key}"` : () => '';
+            const templates = sectionTemplates(data, editableAttr, bindAttr);
             target.innerHTML = sections.map((key) => templates[key] || `<div class="preview-section">${key}</div>`).join('');
         };
 
         const generateTemplate = () => {
             const data = buildData();
             const sections = Array.from(sectionsList.querySelectorAll('.builder-section')).map((el) => el.dataset.section);
-            const htmlSections = sectionTemplates(data);
+            const htmlSections = sectionTemplates(data, '', () => '');
             return `<!-- Generated by Template Builder -->\n<div class="landing-template">\n${sections.map((key) => htmlSections[key] || `<div>${key}</div>`).join('\n')}\n</div>`;
         };
 
@@ -304,10 +365,13 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
         const enableDrag = () => {
             let dragged = null;
             sectionsList.addEventListener('dragstart', (event) => {
-                const section = event.target.closest('.builder-section');
+                const handle = event.target.closest('.handle');
+                if (!handle) return;
+                const section = handle.closest('.builder-section');
                 if (!section) return;
                 dragged = section;
                 section.classList.add('dragging');
+                event.dataTransfer.setData('text/plain', '');
                 event.dataTransfer.effectAllowed = 'move';
             });
             sectionsList.addEventListener('dragend', (event) => {
@@ -375,11 +439,20 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
             if (!name) return;
             const div = document.createElement('div');
             div.className = 'builder-section';
-            div.draggable = true;
             div.dataset.section = name;
-            div.innerHTML = `<span>${name}</span><span class="handle">⇅</span>`;
+            div.innerHTML = `<div class="section-info"><span class="handle" draggable="true">⇅</span><span>${name}</span></div><button class="btn btn-sm btn-outline-danger section-remove" type="button" data-action="remove">حذف</button>`;
             sectionsList.appendChild(div);
             document.getElementById('newSectionName').value = '';
+            renderPreview(livePreview);
+            updateOutput();
+        });
+
+        sectionsList.addEventListener('click', (event) => {
+            const removeButton = event.target.closest('[data-action="remove"]');
+            if (!removeButton) return;
+            const section = removeButton.closest('.builder-section');
+            if (!section) return;
+            section.remove();
             renderPreview(livePreview);
             updateOutput();
         });
@@ -389,6 +462,15 @@ https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=cro
                 renderPreview(livePreview);
                 updateOutput();
             });
+        });
+
+        livePreview.addEventListener('input', (event) => {
+            const editable = event.target.closest('[data-bind]');
+            if (!editable) return;
+            const key = editable.dataset.bind;
+            if (!key || !inputs[key]) return;
+            inputs[key].value = editable.innerText.trim();
+            updateOutput();
         });
 
         enableDrag();
