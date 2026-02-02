@@ -19,6 +19,15 @@ $subtitle = 'إدارة القوالب والحقول الافتراضية.';
 ob_start();
 ?>
 <div class="card app-card mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h5 class="mb-1">منشئ القوالب المباشر</h5>
+            <p class="text-secondary mb-0">أنشئ أقسام القالب ورتبها مع معاينة مباشرة.</p>
+        </div>
+        <a class="btn btn-outline-info" href="/admin/templates/builder">فتح المنشئ</a>
+    </div>
+</div>
+<div class="card app-card mb-4">
     <div class="card-body">
         <form method="post" action="/admin/templates" class="row g-3">
             <?= csrf_field() ?>

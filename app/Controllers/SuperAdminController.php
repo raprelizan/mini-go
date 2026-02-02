@@ -313,6 +313,12 @@ class SuperAdminController
         ]);
     }
 
+    public function templateBuilder(): void
+    {
+        Auth::requireRole('super_admin');
+        view('admin/template-builder');
+    }
+
     public function previewTemplate(): void
     {
         Auth::requireRole('super_admin');

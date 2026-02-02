@@ -34,6 +34,7 @@ $router->post('/admin/merchants/delivery-prices', [new SuperAdminController(), '
 $router->post('/admin/merchants/delete', [new SuperAdminController(), 'deleteMerchant']);
 
 $router->get('/admin/templates', [new SuperAdminController(), 'templatesIndex']);
+$router->get('/admin/templates/builder', [new SuperAdminController(), 'templateBuilder']);
 $router->get('/admin/templates/preview', [new SuperAdminController(), 'previewTemplate']);
 $router->post('/admin/templates', [new SuperAdminController(), 'createTemplate']);
 $router->post('/admin/templates/update', [new SuperAdminController(), 'updateTemplate']);
