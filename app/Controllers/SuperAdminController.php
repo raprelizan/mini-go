@@ -5,7 +5,10 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Database;
 use App\Models\Order;
-use App\Models\PageCustomization;
+use App\ThemeEngine\SectionRegistry;
+use App\ThemeEngine\SchemaValidator;
+use App\ThemeEngine\VersionManager;
+use App\ThemeEngine\Renderer;
 
 class SuperAdminController
 {
@@ -470,7 +473,7 @@ class SuperAdminController
         }
         unset($page);
 
-        $customizations = Database::connection()->query('SELECT page_id, is_enabled FROM page_customizations')->fetchAll();
+        $customizations = Database::connection()->query('SELECT page_id, is_enabled FROM theme_pages')->fetchAll();
         $customizationMap = [];
         foreach ($customizations as $customization) {
             $customizationMap[(int) $customization['page_id']] = (int) $customization['is_enabled'];
@@ -495,27 +498,32 @@ class SuperAdminController
     {
         Auth::requireRole('super_admin');
         $pageId = (int) ($_GET['page_id'] ?? 0);
+        $registry = new SectionRegistry();
+        $versionManager = new VersionManager();
         $pages = Database::connection()->query('SELECT pages.*, merchants.name AS merchant_name FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id ORDER BY pages.created_at DESC')->fetchAll();
         $page = null;
-        $customization = null;
         $customizationData = ['sections' => []];
+        $versions = [];
 
         if ($pageId > 0) {
             $stmt = Database::connection()->prepare('SELECT pages.*, merchants.name AS merchant_name FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id WHERE pages.id = :id');
             $stmt->execute(['id' => $pageId]);
             $page = $stmt->fetch();
             if ($page) {
-                $customization = PageCustomization::ensure((int) $page['id']);
-                $json = $customization['draft_json'] ?? $customization['published_json'] ?? '';
-                $customizationData = json_decode((string) $json, true) ?: ['sections' => []];
+                $versionManager->ensureThemePage((int) $page['id']);
+                $customizationData = $versionManager->findDraftPayload((int) $page['id'])
+                    ?? $versionManager->findPublishedPayload((int) $page['id'])
+                    ?? ['sections' => []];
+                $versions = $versionManager->listVersions((int) $page['id']);
             }
         }
 
         view('admin/theme-customizer', [
             'pages' => $pages,
             'page' => $page,
-            'customization' => $customization,
             'customizationData' => $customizationData,
+            'registry' => $registry->all(),
+            'versions' => $versions,
         ]);
     }
 
@@ -533,14 +541,16 @@ class SuperAdminController
             return;
         }
 
-        $payload = $this->sanitizeCustomization($payload);
-        PageCustomization::ensure($pageId);
+        $registry = new SectionRegistry();
+        $validator = new SchemaValidator($registry);
+        $payload = $validator->sanitize($payload);
+        $versionManager = new VersionManager();
 
         if ($action === 'publish') {
-            PageCustomization::publish($pageId, $payload);
+            $versionManager->publish($pageId, $payload);
             $_SESSION['flash_success'] = 'تم نشر التخصيص بنجاح.';
         } else {
-            PageCustomization::saveDraft($pageId, $payload);
+            $versionManager->saveDraft($pageId, $payload);
             $_SESSION['flash_success'] = 'تم حفظ المسودة.';
         }
 
@@ -557,16 +567,34 @@ class SuperAdminController
             header('Location: /admin/pages');
             return;
         }
-        PageCustomization::ensure($pageId);
-        PageCustomization::toggle($pageId, $enabled);
+        $versionManager = new VersionManager();
+        $versionManager->toggle($pageId, $enabled);
         $_SESSION['flash_success'] = 'تم تحديث حالة المخصص.';
         header('Location: /admin/pages');
+    }
+
+    public function rollbackCustomizer(): void
+    {
+        Auth::requireRole('super_admin');
+        $pageId = (int) ($_POST['page_id'] ?? 0);
+        $versionId = (int) ($_POST['version_id'] ?? 0);
+        if ($pageId === 0 || $versionId === 0) {
+            $_SESSION['flash_error'] = 'بيانات الرجوع غير صالحة.';
+            header('Location: /admin/customizer?page_id=' . $pageId);
+            return;
+        }
+
+        $versionManager = new VersionManager();
+        $versionManager->rollbackToVersion($pageId, $versionId);
+        $_SESSION['flash_success'] = 'تم استرجاع النسخة بنجاح.';
+        header('Location: /admin/customizer?page_id=' . $pageId);
     }
 
     public function previewCustomizer(): void
     {
         Auth::requireRole('super_admin');
         $pageId = (int) ($_GET['page_id'] ?? 0);
+        $versionManager = new VersionManager();
         $stmt = Database::connection()->prepare('SELECT pages.*, merchants.name AS merchant_name, merchants.subdomain AS merchant_subdomain FROM pages INNER JOIN merchants ON pages.merchant_id = merchants.id WHERE pages.id = :id');
         $stmt->execute(['id' => $pageId]);
         $page = $stmt->fetch();
@@ -582,73 +610,21 @@ class SuperAdminController
             'subdomain' => $page['merchant_subdomain'],
         ];
 
-        $customization = PageCustomization::findByPageId($pageId);
-        $json = $customization['draft_json'] ?? $customization['published_json'] ?? '';
-        $customizationData = json_decode((string) $json, true) ?: ['sections' => []];
+        $customizationData = $versionManager->findDraftPayload($pageId)
+            ?? $versionManager->findPublishedPayload($pageId)
+            ?? ['sections' => []];
 
-        view('landing/customized', [
+        $renderer = new Renderer(__DIR__ . '/../../resources/views/sections');
+        $rendered = $renderer->render($customizationData, [
             'merchant' => $merchant,
             'page' => $page,
-            'customization' => $customizationData,
         ]);
-    }
 
-    private function sanitizeCustomization(array $payload): array
-    {
-        $sections = $payload['sections'] ?? [];
-        if (!is_array($sections)) {
-            $sections = [];
-        }
-
-        $cleanSections = [];
-        foreach ($sections as $section) {
-            if (!is_array($section)) {
-                continue;
-            }
-            $type = preg_replace('/[^a-z0-9_]/', '', (string) ($section['type'] ?? ''));
-            if ($type === '') {
-                continue;
-            }
-            $settings = is_array($section['settings'] ?? null) ? $section['settings'] : [];
-            $blocks = is_array($section['blocks'] ?? null) ? $section['blocks'] : [];
-            $cleanBlocks = [];
-            foreach ($blocks as $block) {
-                if (!is_array($block)) {
-                    continue;
-                }
-                $blockType = preg_replace('/[^a-z0-9_]/', '', (string) ($block['type'] ?? ''));
-                $blockSettings = is_array($block['settings'] ?? null) ? $block['settings'] : [];
-                $cleanBlocks[] = [
-                    'type' => $blockType,
-                    'settings' => $this->sanitizeSettings($blockSettings),
-                ];
-            }
-
-            $cleanSections[] = [
-                'type' => $type,
-                'settings' => $this->sanitizeSettings($settings),
-                'blocks' => $cleanBlocks,
-            ];
-        }
-
-        return ['sections' => $cleanSections];
-    }
-
-    private function sanitizeSettings(array $settings): array
-    {
-        $clean = [];
-        foreach ($settings as $key => $value) {
-            $safeKey = preg_replace('/[^a-z0-9_]/', '', (string) $key);
-            if ($safeKey === '') {
-                continue;
-            }
-            if (is_string($value)) {
-                $clean[$safeKey] = trim($value);
-            } elseif (is_numeric($value)) {
-                $clean[$safeKey] = $value;
-            }
-        }
-        return $clean;
+        view('landing/theme-engine', [
+            'merchant' => $merchant,
+            'page' => $page,
+            'renderedSections' => $rendered,
+        ]);
     }
 
     public function createPage(): void

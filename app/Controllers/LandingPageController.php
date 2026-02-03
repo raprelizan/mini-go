@@ -6,8 +6,10 @@ use App\Models\Merchant;
 use App\Models\Page;
 use App\Models\Template;
 use App\Models\Order;
-use App\Models\PageCustomization;
 use App\Core\HtmlSanitizer;
+use App\ThemeEngine\PageResolver;
+use App\ThemeEngine\Renderer;
+use App\ThemeEngine\VersionManager;
 use App\Core\Database;
 
 class LandingPageController
@@ -54,17 +56,23 @@ class LandingPageController
             $pageData['description'] = HtmlSanitizer::sanitize((string) $pageData['description']);
         }
 
-        $customization = PageCustomization::findByPageId((int) $page['id']);
-        if ($customization && (int) $customization['is_enabled'] === 1 && !empty($customization['published_json'])) {
-            $customizationData = json_decode((string) $customization['published_json'], true) ?: ['sections' => []];
-            view('landing/customized', [
+        $versionManager = new VersionManager();
+        $resolver = new PageResolver($versionManager);
+        $themePayload = $resolver->resolve((int) $page['id']);
+        if ($themePayload) {
+            $renderer = new Renderer(__DIR__ . '/../../resources/views/sections');
+            $rendered = $renderer->render($themePayload, [
                 'merchant' => $merchant,
                 'page' => $page,
                 'template' => $template,
-                'fields' => $fields,
                 'pageData' => $pageData,
                 'deliveryPrices' => $deliveryPrices,
-                'customization' => $customizationData,
+            ]);
+
+            view('landing/theme-engine', [
+                'merchant' => $merchant,
+                'page' => $page,
+                'renderedSections' => $rendered,
             ]);
             return;
         }

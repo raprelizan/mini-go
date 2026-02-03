@@ -43,6 +43,7 @@ $router->post('/admin/templates/update', [new SuperAdminController(), 'updateTem
 $router->post('/admin/templates/delete', [new SuperAdminController(), 'deleteTemplate']);
 $router->post('/admin/customizer/save', [new SuperAdminController(), 'saveCustomizer']);
 $router->post('/admin/customizer/toggle', [new SuperAdminController(), 'toggleCustomizer']);
+$router->post('/admin/customizer/rollback', [new SuperAdminController(), 'rollbackCustomizer']);
 
 $router->get('/admin/pages', [new SuperAdminController(), 'pagesIndex']);
 $router->post('/admin/pages', [new SuperAdminController(), 'createPage']);

@@ -81,6 +81,62 @@ a {
     border-radius: 16px;
 }
 
+.customizer-shell {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+}
+
+.customizer-panel {
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 20px;
+    max-height: calc(100vh - 190px);
+    overflow: auto;
+}
+
+.section-item {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+}
+
+.section-item.active {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+}
+
+.section-item .handle {
+    color: #94a3b8;
+}
+
+.settings-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.preview-frame {
+    width: 100%;
+    min-height: 75vh;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0b1120;
+}
+
+.blocks-list .block-card {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(15, 23, 42, 0.6);
+}
+
 .rich-editor {
     min-height: 180px;
     background: rgba(2, 6, 23, 0.6);

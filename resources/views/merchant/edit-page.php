@@ -27,7 +27,12 @@ ob_start();
                 <div>
                     <label class="form-label"><?= htmlspecialchars($field['label']) ?></label>
                     <?php if ($field['field_type'] === 'textarea') : ?>
-                        <textarea name="field_<?= htmlspecialchars($fieldKey) ?>" class="form-control<?= $isRichText ? ' rich-editor-input' : '' ?>" rows="6"><?= $isRichText ? ($pageData[$fieldKey] ?? '') : htmlspecialchars($pageData[$fieldKey] ?? '') ?></textarea>
+                        <textarea
+                            name="field_<?= htmlspecialchars($fieldKey) ?>"
+                            class="form-control<?= $isRichText ? ' rich-editor-input' : '' ?>"
+                            rows="6"
+                            <?= $isRichText ? 'data-upload-url="/merchant/editor/upload"' : '' ?>
+                        ><?= $isRichText ? ($pageData[$fieldKey] ?? '') : htmlspecialchars($pageData[$fieldKey] ?? '') ?></textarea>
                         <?php if ($isRichText) : ?>
                             <div class="form-text text-secondary">يمكنك تنسيق النص وإضافة صور وروابط مباشرة.</div>
                         <?php endif; ?>
@@ -66,37 +71,7 @@ ob_start();
     </div>
 </div>
 <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-<script>
-    const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
-    if (window.tinymce) {
-        tinymce.init({
-            selector: 'textarea.rich-editor-input',
-            height: 360,
-            menubar: false,
-            plugins: 'lists link image table code autoresize',
-            toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright | bullist numlist | blockquote | link image | removeformat | code',
-            content_style: 'img {max-width: 100%; height: auto; display: block; margin: 12px auto;}',
-            images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
-                const formData = new FormData();
-                formData.append('_token', csrfToken);
-                formData.append('file', blobInfo.blob(), blobInfo.filename());
-                fetch('/merchant/editor/upload', {
-                    method: 'POST',
-                    body: formData,
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.location) {
-                            resolve(data.location);
-                        } else {
-                            reject(data.error || 'تعذر رفع الصورة.');
-                        }
-                    })
-                    .catch(() => reject('تعذر رفع الصورة.'));
-            }),
-        });
-    }
-</script>
+<script src="/assets/js/rich-editor.js"></script>
 <?php
 $content = ob_get_clean();
 require __DIR__ . '/../layouts/app.php';
